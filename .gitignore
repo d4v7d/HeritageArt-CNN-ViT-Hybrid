@@ -49,6 +49,8 @@ results/
 venv/
 env/
 *.venv
+./_mmseg_demo/
+_mmseg_demo/
 
 # Configs (si contienen rutas locales o secretos)
 # configs/local_*.yaml
