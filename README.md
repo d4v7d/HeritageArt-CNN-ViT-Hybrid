@@ -46,6 +46,7 @@ mim install mmengine==0.10.4
 mim install "mmcv==2.1.0"
 # mim install "mmsegmentation>=1.2.0"
 mim install "mmsegmentation==1.2.2"
+mim install "mmpretrain>=1.0.0"
 
 
 # download the config (and optionally the checkpoint) locally
@@ -85,3 +86,31 @@ pip install -r requirements.txt
 ```bash
 pre-commit install
 ```
+# MMSegmentation
+
+Download configs + checkpoints (weights) in one line
+
+## UPerNet + Swin (ADE20K): 
+The official Swin-Transformer segmentation repo lists UPerNet configs and direct “Model” links (e.g., `upernet_swin_base_patch4_window7_512x512_160k_ade20k.pth`). You can also use mim once you know the https://github.com/SwinTransformer/Swin-Transformer-Semantic-Segmentation config path. 
+
+Swin-Base + UPerNet (ImageNet-22k pretrain, ADE20K finetune, 512x512):
+```
+mim download mmsegmentation \
+  --config swin-base-patch4-window7-in22k-pre_upernet_8xb2-160k_ade20k-512x512 \
+  --dest checkpoints
+```
+This will drop a matching `.py`config and `.pth` checkpoint in `checkpoints/`.
+
+
+## UPerNet + ConvNeXt-Large (ADE20K): 
+available via OpenMMLab model zoo and Hugging Face (openmmlab/upernet-convnext-large). 
+
+ConvNeXt-Large + UPerNet (ADE20K 640×640; AMP):
+```
+mim download mmsegmentation \
+  --config convnext-large_upernet_8xb2-amp-160k_ade20k-640x640 \
+  --dest checkpoints
+```
+This will drop a matching `.py`config and `.pth` checkpoint in `checkpoints/`.
+
+
