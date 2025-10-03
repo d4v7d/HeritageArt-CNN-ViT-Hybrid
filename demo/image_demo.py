@@ -19,10 +19,12 @@ result = inference_model(model, img)
 # visualize the results in a new window
 show_result_pyplot(model, img, result, show=True, out_file='result.jpg', opacity=0.5)
 
+print("\nFinalized SWIN\nStaring ConvNext\n")
+
 # --------------------------------------------
 # CNN
-config_file = './checkpoints/convnext-large_upernet_8xb2-amp-160k_ade20k-640x640.py'
-checkpoint_file = '.checkpoints/upernet_convnext_large_fp16_640x640_160k_ade20k_20220226_040532-e57aa54d.pth'
+config_file = 'checkpoints/convnext-large_upernet_8xb2-amp-160k_ade20k-640x640.py'
+checkpoint_file = 'checkpoints/upernet_convnext_large_fp16_640x640_160k_ade20k_20220226_040532-e57aa54d.pth'
 
 model = init_model(config_file, checkpoint_file, device)
 result = inference_model(model, img)
