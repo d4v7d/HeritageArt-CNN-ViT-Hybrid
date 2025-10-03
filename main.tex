@@ -1,0 +1,517 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+% \usepackage{minted} % Syntax highlighting
+\usepackage{hyperref} % Cross-references are links
+\usepackage{tabularx} % Add x word-wrap in table cells
+\usepackage{listings} % Syntax highlighting
+\usepackage[svgnames]{xcolor} % Listing background
+\usepackage{flafter} % Figures after its reference in text
+\usepackage[all]{nowidow} % Avoid widow lines
+\usepackage{booktabs} % Horizontal lines in tables
+\usepackage{verbatim} % Multi-line comments
+\usepackage{booktabs,tabularx,makecell,array,xcolor,adjustbox}
+\usepackage{url}
+\usepackage[colorinlistoftodos]{todonotes}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Listing styles, see https://www.overleaf.com/learn/latex/Code_listing
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.95}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red},
+  showstringspaces=false
+}
+
+% See https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Settings
+\lstdefinestyle{listing_style}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize, % font family and size
+    breakatwhitespace=true, % automatic breaks only at whitespace
+    breaklines=true, % automatic line-breaking
+    captionpos=b, % t=top, b=bottom
+%   commentstyle=\color{codegreen},
+    escapeinside={~[}{]~}, % Delimiters for Latex commands, eg: ~[\textbf{make test}]~
+    frame=single, % none/leftline/topline/bottomline/lines/single/shadowbox
+    keepspaces=true,
+%   keywordstyle=\color{blue},
+%   morekeywords={make,test,clean,asan,mkdir},
+    numbers=left,
+    numbersep=5pt, % distance of line-numbers from the code
+    numberstyle=\tiny\color{codegray},
+    rulecolor=\color{codegray}, % colour of the frame-box
+%   showspaces=false,
+%   showstringspaces=false,
+%   showtabs=false,
+%   stringstyle=\color{codepurple},
+    tabsize=2
+}
+
+\lstset{style=listing_style}
+
+% Adapted from https://tex.stackexchange.com/a/279134
+\makeatletter
+\def\ps@IEEEtitlepagestyle{%
+  \def\@oddfoot{\mycopyrightnotice}%
+  \def\@evenfoot{}%
+}
+\def\mycopyrightnotice{%
+  {\footnotesize 979-8-3503-1887-6/23/\$31.00 \copyright 2023 IEEE\hfill}
+}
+\makeatother
+
+% Embed fonts for IEEE Pdf Express
+% https://www.overleaf.com/learn/latex/Questions/My_submission_was_rejected_by_the_journal_because_%22Font_XYZ_is_not_embedded%22._What_can_I_do%3F
+
+\begin{document}
+
+% Detection of Conservation-Relevant Features in Cultural Heritage Artworks Using Vision Transformers and CNNs
+\title{Detection of Conservation-Relevant Features in Cultural Heritage Artworks Using Vision Transformers and CNNs}
+
+\author{
+\IEEEauthorblockN{Brandon Trigueros-Lara}
+\IEEEauthorblockA{\textit{ECCI} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+brandon.trigueros@ucr.ac.cr}
+\and
+\IEEEauthorblockN{Valentino Vidaurre-Rodríguez}
+\IEEEauthorblockA{\textit{ECCI} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+valentino.vidaurre@ucr.ac.cr}
+\and
+\IEEEauthorblockN{David González-Villanueva}
+\IEEEauthorblockA{\textit{ECCI} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+david.gonzalezvillanueva@ucr.ac.cr}
+\and
+\IEEEauthorblockN{Rubén González-Villanueva}
+\IEEEauthorblockA{\textit{ECCI} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+ruben.gonzalezvillanueva@ucr.ac.cr}
+\and
+\IEEEauthorblockN{Christian Quesada-López}
+\IEEEauthorblockA{\textit{ECCI} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+cristian.quesadalopez@ucr.ac.cr}
+\and
+\IEEEauthorblockN{Jeisson Hidalgo-Céspedes}
+\IEEEauthorblockA{\textit{ECCI-CITIC} \\
+\textit{Universidad de Costa Rica}\\
+San José, Costa Rica \\
+jeisson.hidalgo@ucr.ac.cr}
+}
+
+\maketitle
+
+\begin{abstract}
+Preserving the integrity and cultural authenticity of artworks is a fundamental challenge in heritage conservation. Traditionally, conservators rely on visual inspection and scientific imaging techniques such as X-ray, infrared photography, and microscopy. However, despite significant advances in computer vision, its application to cultural heritage remains scarce and predominantly focused on digital restoration rather than preventive conservation.
+
+Current studies rarely address automated detection and region-level localization of deterioration patterns, and there is no standardized evaluation of machine learning models in this context. To bridge this gap, We propose a detection oriented framework that integrates computer vision and machine learning to support preventive conservation through automated identification of deterioration. We adopt a multiclass damage taxonomy (for example cracks, stains, scratches, material loss, peeling and flaking) together with a clean class that denotes intact surface, enabling region level segmentation and consistent comparison across collections.
+
+Our approach compares three architecture families: Convolutional Neural Networks (CNNs), Vision Transformers (ViTs) and Hybrid CNN-ViTs. The proposed framework delivers both baseline and state-of-the-art models, along with a comparative evaluation of detection performance at the region level. These results could provide empirical evidence and practical guidelines for integrating AI-assisted analysis into cultural heritage workflows, particularly within the Costa Rican context, and contribute to authenticity-aware computational methodologies in Digital Heritage.
+
+% Conserve, but modify later
+We hypothesize that CNNs and ViTs will exhibit complementary strengths. CNNs outperform on fine, high-frequency degradations (e.g., hairline cracks), whereas ViTs excel on broader, context-dependent phenomena (e.g., varnish degradation/overpainting). We evaluate agreement with expert annotations and will release fixed data splits and baselines, aiming to offer actionable guidance for AI-assisted, region-level analysis in conservation workflows for Costa Rica's heritage.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Computer Vision; Cultural Heritage Preservation; Deep Learning; Digital Heritage; Artwork Deterioration Detection; Convolutional Neural Networks; Vision Transformers
+\end{IEEEkeywords}
+
+
+\section{Introduction}
+\label{sec:Introduction}
+
+Artwork conservation is a vital element of cultural heritage stewardship. Socially, it underpins social identity, community pride, and education. Economically, it contributes to the tourism industry and the art market, generating a wide variety of jobs and supporting local and national economies~\cite{ernst__young_global_limited_2014_creating_2014}. Conservation ensures that artworks remain accessible by seeking to maintain their historical, aesthetic, and ethical value for future generations~\cite{ernst__young_global_limited_2014_creating_2014}.
+
+The field of conservation can be broadly sliced to three branches: preventive conservation, remedial conservation, and restoration~\cite{icom-cc_icom-cc_2009}. We focus on \textbf{preventive conservation}, i.e. managing environments and risks to slow or avoid deterioration before damage occurs~\cite{icom-cc_icom-cc_2009}. Since damage must be identified before being addressed, our analysis could result useful for restoration as well.
+
+In the field of preventive conservation, the early recognition of surface deterioration, such as abrasion, pigment loss, craquelure, varnish degradation, overpaint, or water staining, is crucial. Conservator-restorers have combined visual examination with a broad toolkit of analytical and imaging methods, among them X-ray, radiography, infrared reflectography, microscopy, and spectroscopy~\cite{borg_application_2020}. Computer-assisted analyses existed before 2019, such as brush-stroke extraction in Van Gogh works and automated crack/craquelure analyses~\cite{borg_application_2020}. However, these efforts were scattered across case-specific tools with limited standardization or benchmarks~\cite{lamberti_computer-assisted_2014,sidorov_craquelure_2019,dulecha_crack_2019}.
+
+During the 2010s, \textbf{Convolutional Neural Networks} (CNNs) arose as an architecture of deep learning models composed of multiple layers of convolution filters and pooling operations that progressively extract higher-level representations~\cite{mauricio_comparing_2023}. CNN's became the default machine learning (ML) tool for image classification, segmentation and pattern recognition, due to their ability to learn spatial hierarchies of features at multiple scales~\cite{yunusa_exploring_2024}.
+
+In 2020, the Vision Transformers (ViTs) architecture brought the self-attention mechanism from natural language processing to vision tasks. ViTs are a newer family of models that apply the transformer architecture, originally developed for sequence processing in Natural Language Processing (NLP), to image analysis~\cite{mauricio_comparing_2023}. ViTs can model long-range dependencies and global context across the entire image in one layer~\cite{mauricio_comparing_2023}, as opposed to the localized incremental context of CNNs. This mechanism has allowed ViTs and their variants to achieve competitive or superior results to CNNs, although typically requiring large training datasets and higher computational complexity~\cite{ali_vision_2023,elharrouss_vits_2025,yunusa_exploring_2024,dosovitskiy_image_2021}, which are important considerations when adopting them for niche domains like cultural heritage imaging.
+
+Overall AI applications to cultural heritage have accelerated since 2019, spanning classification tasks, damage assessment~\cite{hou_using_2024,kwon_automatic_2019,samhouri_prediction_2022}, materials analysis~\cite{go_comparison_2025}, visual reconstruction~\cite{yi_zhang_artificial_2025} and accessibility~\cite{girbacia_analysis_2024,mishra_artificial_2024}. These models automate and enhance the analysis of artworks, enabling more accurate, scalable, and less subjective assessments compared to traditional manual methods~\cite{sankar_transforming_2023,ali_vision_2023,yunusa_exploring_2024}.
+
+Most research related to artwork damage detection focuses individually on either CNNs, ViTs, (and more recently) hybrids, not on a head-to-head benchmarking of their performance~\cite{ali_vision_2023,samhouri_prediction_2022,roy_multimodal_2023}. A notable exception is the 2024 ARTeFACT benchmark~\cite{ivanova_artefact_2024} that we will review in the \ref{sec:PreviousWork} section; and one recent study that compared CNNs and a ViT. Nonetheless, the study focused on the classification of pigment manufacturing processes~\cite{go_comparison_2025}, not artwork damage detection.
+
+For artwork damage detection, a practical barrier is data. Obtaining data is sometimes blocked by license requirements, and when available, annotation becomes expensive, time-consuming, and requires domain-experts~\cite{ivanova_artefact_2024}. Thus, humanities and heritage datasets often lack consistent annotations and require automated or semi-automated metadata strategies~\cite{diem_automatic_nodate}. Recent community work proposes cultural heritage-specific dataset “datasheets”~\cite{alkemade_datasheets_2023}, and the ARTeFACT dataset itself was created to address annotation scarcity for damage labels~\cite{ivanova_artefact_2024}. As such, we are vividly interested in optimizing model performance in low annotation quantities and cross-collection applications.
+
+Despite active conservation practice in Costa Rica, we did not locate peer-reviewed studies applying CNNs or ViTs specifically to artwork damage detection or restoration in the Costa Rican context. This gap strengthens the case for a comparative CNN-vs-ViT study emphasizing interpretability, data requirements, and performance on real-world preventive-conservation tasks. We aim to contribute to fill this gap answering the following research questions:
+
+\begin{itemize}
+    \setlength{\itemindent}{0.5cm}
+    \item[RQ1] Which model family—CNNs, Vision Transformers, or CNN–ViT hybrids—best detects and classifies painting deterioration across damage types?
+    \item[H1] With limited training data, CNNs will outperform ViTs on painting-deterioration localization; with strong pretraining or distillation, ViTs will match or surpass CNNs, and hybrid CNN–ViT models will achieve the best overall performance by combining local inductive bias with global attention.
+    \item[RQ2] Which family generalizes better to unseen cultural heritage collections?
+    \item[H3] On unseen institutions/collections, self-supervised–pretrained Vision Transformers (ViTs) and hybrid CNN–ViT models will transfer better than standard CNNs; however, the ranking will depend on the shift type, and no single family will dominate across all shifts
+\end{itemize}
+
+Finally, we will limit our study to the detection of damage features in 2D Costarrican artwork. We will not cover 3D work nor open-air cultural heritage like façades or sculptures. We will work specifically with RBG images, alongside Infrared and X-ray images.
+
+\section{Conceptual Foundation}
+
+\subsection{Computer Vision}
+Computer vision is the field of artificial intelligence that deals with extracting meaningful information from digital images and videos and understanding their content~\cite{lamarr}. It encompasses a range of techniques for interpreting visual data, enabling tasks such as object recognition, scene understanding, and anomaly detection. Computer vision methods can thus aid in identifying deterioration patterns in paintings and historical artifacts, supporting conservation efforts through efficient image-based damage detection.
+
+% \subsection{Convolutional Neural Networks (CNNs)}
+% Convolutional Neural Networks (CNNs) are a class of deep learning models designed for pattern recognition in images by exploiting spatial hierarchies of features. A CNN architecture is composed of multiple layers of convolution filters and pooling operations that progressively extract higher-level representations: early layers capture low-level features like edges and textures, while deeper layers capture complex structures or objects~\cite{mdpi}. This hierarchical, localized receptive field approach allows CNNs to learn spatial patterns at multiple scales, making them highly effective for vision tasks.
+
+% \subsection{Vision Transformers (ViTs)}
+% Vision Transformers (ViTs) are a newer family of models that apply the transformer architecture (originally developed for sequence processing in NLP) to image analysis. Instead of local convolutions, ViTs divide an image into a sequence of patches and process them with self-attention mechanisms that globally weigh relationships between all patches~\cite{mdpi}. This attention-based approach provides ViTs with a global receptive field, meaning they can model long-range dependencies and context across the entire image in one layer, as opposed to the localized incremental context of CNNs. The ability to capture global context enables ViTs to excel at recognizing image-wide patterns and anomalies that might be challenging for purely convolutional models~\cite{mdpi}. Nonetheless, ViTs often require large training datasets and come with higher computational complexity, which are important considerations when adopting them for niche domains like cultural heritage imaging.
+
+% Revisar bien luego
+\subsection{Hybrid CNN–ViT Architectures}
+Given the complementary strengths of CNNs and ViTs, hybrid architectures have emerged that integrate convolutional and transformer components to capture both local and global features. The motivation behind such hybrids is to leverage CNNs’ efficiency in modeling fine-grained spatial details together with transformers’ capacity for long-range context. In the cultural heritage domain, such hybrid models are an emerging area of interest, aiming to enhance damage detection on artworks by capturing the nuanced local appearance of deterioration (via CNN layers) while simultaneously accounting for broader image context and relationships (via transformer attention).~\cite{wang_fusion_2025}
+
+% \subsection{Evaluation Metrics for Prediction Tasks}
+% To quantitatively evaluate the performance of image analysis models, a range of metrics is used, differing for image-level classification tasks versus region-level localization tasks. For image-level predictions (e.g. classifying an entire image as containing damage or not), accuracy – the overall fraction of correct predictions – is a basic metric, though it can be insufficient for imbalanced data. More informative are precision and recall: precision measures the proportion of predicted positive cases that are truly positive, while recall (equivalently, sensitivity) measures the proportion of actual positive cases that the model correctly identifies~\cite{herbert_forecasting_2023,chen_transunet_2021}. The F1-score, defined as the harmonic mean of precision and recall, provides a single summary measure that balances these two aspects~\cite{herbert_forecasting_2023}. High precision indicates few false alarms, high recall indicates few misses, and F1 offers a trade-off when optimizing for both. 
+% For region-level predictions such as segmented damage masks or detected bounding boxes, spatial overlap and localization accuracy are critical. A widely used metric in semantic segmentation is the Intersection over Union (IoU) – also known as the Jaccard index – which computes the area of overlap between the predicted region and the ground-truth region divided by the area of their union. The model’s performance is often reported as a mean IoU (mIoU) averaged over all classes or damage categories; this was established as a primary benchmark in segmentation challenges with the advent of fully convolutional networks~\cite{apmx}. In object detection (or region-level damage detection framed as object detection), the standard metric is Average Precision (AP), which summarizes the precision–recall curve for a given class. Modern benchmarks report mean Average Precision (mAP) across all classes and sometimes across multiple IoU thresholds~\cite{apmx}. Together, these metrics (accuracy, precision/recall/F1, mIoU, and mAP) will allow us to assess model performance comprehensively, from overall classification accuracy down to detailed localization quality.
+
+% \subsection{Deterioration Features in Cultural Heritage Images}
+% Artworks and historical items exhibit a wide array of deterioration phenomena, which can be visualized and categorized for the purpose of automated detection. The recently proposed ARTeFACT taxonomy defines a comprehensive set of 15 damage classes to encompass common forms of degradation in analogue artworks~\cite{ivanova_artefact_2024}. These include forms of material loss and surface damage such as \lstinline|Material Loss| (missing or eroded sections of the material) and \lstinline|Peel| (areas where layers of paint or substrate have separated or flaked off). Surface contaminants are represented by categories like \lstinline|Dust|, \lstinline|Hair|, and \lstinline|Dirt|, which denote foreign particles or soiling on the artwork’s surface. Several classes capture mechanical or structural damage: for example, \lstinline|Scratch|, \lstinline|Puncture|, \lstinline|Fold|, and \lstinline|Cracks| correspond to physical gouges, holes, creases, or fissures in the material, often resulting from mishandling or stress over time. Other defined types include \lstinline|Stamp|, \lstinline|Sticker| and \lstinline|Writing|, marking unintended human interventions or labels on the artwork, and \lstinline|Staining| and \lstinline|Burn Marks|, which indicate chemical or thermal damage such as pigment discoloration or scorch marks. A category unique to photographic media is \lstinline|Light Leak|, referring to areas degraded by unwanted exposure to light (common in film-based photographs). These deterioration features vary greatly in their visual characteristics: they differ in shape (e.g., the fine lines of craquelure cracks vs. broad blotches of stains), size (tiny specks of dust vs. large missing patches of paint), color/contrast (some deposits may blend in, while others are highly salient), and spatial distribution. Damage types can range from localized, well-defined defects to diffuse or repetitive patterns, posing a challenge for recognition. \cite{ivanova_artefact_2024}
+
+\section{Previous Work}
+\label{sec:PreviousWork}
+
+%THEMATIC PLAN (to review):
+As computer vision has advanced, its intersection with cultural heritage has grown, alongside a rapidly expanding body of literature. To situate our contribution within this landscape, we conducted a structured review of prior work, to which we sought to include only peer-reviewed journal articles, conference papers, proceedings, and reviews relevant to the applications of computer vision in cultural heritage. Additionally, we sought out comparisons between Convolutional Neural Networks (CNNs) and Vision Transformers (ViTs) across different fields. Publications were restricted by language to only English and Spanish, although all articles found were published in English. The time span selected covered the years 2013 to 2025 inclusive. 
+
+\medskip
+% Begin table
+% Colors for strengths/deficiencies
+\definecolor{Good}{RGB}{25,25,112}    % MidnightBlue
+\definecolor{Bad}{RGB}{128,0,0}       % Maroon
+
+% Helpers
+\newcommand{\good}[1]{{\color{Good}\textbf{#1}}}
+\newcommand{\bad}[1]{{\color{Bad}\textbf{#1}}}
+
+% Wrapping column type for TabularX
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% ---- Table ----
+\begin{table*}[h]
+\centering
+\caption{Summary of prior work vs. our framework (deficiencies in \bad{maroon}).}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\lightrulewidth}{0.3pt}
+% \arrayrulecolor{black!35}
+
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabularx}{\textwidth}{Y Y Y Y Y Y Y Y}
+\toprule
+\textbf{Citation} & \textbf{Domain} &
+\makecell{\textbf{Task}\\\textbf{type}} &
+\makecell{\textbf{Data}\\\textbf{modalities}} &
+\textbf{Model} & \textbf{Metrics} & \textbf{Output} &
+\makecell{\textbf{Repro-}\\\textbf{ducibility}} \\
+\midrule
+
+% Tengo dudas en que poner en metrics para nuestro trabajo, porque en teoria lo vamos a comparar con expertos humanos, o no se si solo metricas de accuracy del modelo, pero igual se ocupan labels humanos para entrenar.
+
+% creo que sería accuracy, pero dejemos el commentario para preguntar luego
+
+% --- Mishra et al., 2024 (review) ---
+\textit{Mishra et al., 2024 (review)~\cite{mishra_artificial_2024}} &
+\good{Heritage / Monuments; Facades; Masonry)} &
+Detection; Classification &
+RGB (photographs, drone images, crowd-sourced datasets) &
+\good{Faster R-CNN; Mask R-CNN; YOLO} &
+Image-level classification metrics only; \bad{No localization metrics reported} &
+Bounding boxes; Class labels &
+Case-study datasets \\
+\midrule
+
+% ---- Gîrbacia (2024) Review ----
+
+\textit{Gîrbacia, 2024 (review)~\cite{girbacia_analysis_2024}} &
+\good{Heritage / Multiple} &
+Scientometric review (trend mapping, 2019–2023)&
+RGB; 3D point clouds; TLS/UAV/LiDAR; Thermal/IR; Text/OCR; Audio, Behavioral/Context &
+\good{YOLOv4; Faster R-CNN; DGCNN}; PointNet; Generative; Diffusion (DDRM); Naive Bayes; SVM; k-NN; LLMs &
+% Switch to "Other" if models dont interest us
+Trend indices only: AGR, ADY, PDLY, h-index; \bad{no detection/localization metrics}&
+Trend tables/plots + knowledge-graph visuals; narrative synthesis&
+Methods, queries, timeframe reported; ScientoPy open-source; data in-article; \bad{no code/data repo}\\
+\midrule
+
+% --- Ivanova et al., 2024 (ARTeFACT) ---
+\textit{Ivanova et al., 2024 (ARTeFACT)~\cite{ivanova_artefact_2024}} &
+\good{Heritage / Analogue media (paintings, photographs, textiles, mosaics, frescoes)} &
+Segmentation (binary + multiclass) &
+RGB (digitized museum images, WikiArt, Flickr) &
+\good{CNN (UPerNet+ConvNeXt); ViT (Swin, SegFormer); Foundation models (SAM, DINOv2); Diffusion (DiffEdit, DiffSeg)} &
+Pixel-level: \good{F1, mIoU, Acc}; \bad{low performance, poor generalization} &
+Pixel masks (15 damage types) + content/material labels &
+\good{Dataset + benchmark code released} \\
+\midrule
+
+% --- Ivanova et al., 2024 (DamBench) ---
+\textit{Ivanova et al., 2024 (DamBench)~\cite{ivanova_state---art_2024}} &
+\good{Heritage / Analogue media} &
+Segm. (binary+multiclass); cross-domain &
+RGB (digitizations) &
+\good{UPerNet (ConvNeXt/Swin); SegFormer; DINOv2+MLP; DiffEdit} &
+Pixel-level: \good{F1, mIoU}; LOO by material/content; \bad{poor cross-media generalization} &
+Pixel masks (15 damage types) + material/content tags &
+\good{Benchmark splits + code} \\
+\midrule
+
+% --- Zhang et al., 2025 (article) ---
+
+\textit{Zhang et al., 2025 (article)~\cite{yi_zhang_artificial_2025}} &
+\good{Murals} &
+Detection and reconstruction &
+RGB, Spectral imaging, curated dataset,  &
+\good{CNNs, Transformers}, GANs &
+Spectral reflectance, MSE, SSIM, clustering, PCA &
+Color restored mural sections &
+Digital Dunhuang dataset + pigment tables \\
+\midrule
+
+% --- Rathi et al., 2025 (survey) ---
+\textit{Rathi et al., 2025 (survey)~\cite{rathi_survey_2025}} &
+\good{Heritage / Fine Art Paintings} &
+Classification &
+RGB (mostly) &
+\good{CNN; ViT} (review) &
+Image-level classification metrics only; \bad{No localization metrics reported} &
+Image-level label &
+\bad{--} \\
+\midrule
+
+% --- Wang et al., 2025 (article) ---
+
+% --- Amiri Darban et al., 2025 (article) ---
+\textit{Amiri Darban et al., 2025 (article)~\cite{darban_anomaly_2025}} &
+\good{Renewable energy / Solar farms} &
+Detection; Classification &
+Infrared (drone thermal imagery) &
+\good{Hybrid CNN-ViT (parallel fusion)}; baselines: CNN, ViT &
+Image-level + pixel-level metrics: \good{Acc, Precision, Recall, F1, AUC, MCC}; 
+\bad{no cultural heritage focus} &
+Bounding boxes + anomaly class labels (12 types) &
+\good{Public dataset (RaptorMaps) + reported splits}; 
+\bad{no open code release} \\
+\midrule
+
+% --- This work (framework) ---
+\textbf{This work (framework)} &
+Heritage &
+Localization / Segm. &
+RGB (+IR/X-ray if avail.) &
+CNN / ViT / Hybrid (eval) &
+Task-appropriate: overlap (segm/loc) · PR-based (det.) · expert agreement &
+Pixel masks &
+Code+Data (planned) \\
+\midrule
+
+\bottomrule
+\end{tabularx}
+\end{adjustbox}
+\label{tab:prevwork}
+\end{table*}
+% End table
+
+To identify relevant literature, a structured search was performed on Scopus using the following string query:
+\begin{quote}\small
+\noindent\ttfamily
+\begin{tabularx}{\linewidth}{X}
+("computer vision" OR "Deep Learning" OR "Convolutional Neural Networks" OR "Vision Transformers") AND ("Cultural Heritage Preservation" OR "Art deterioration detection" OR "Digital heritage")
+\end{tabularx}
+\end{quote}
+This query returned, at the time of search, 156 records. After screening, only the subset specifically addressing comparison between CNNs and ViT, or focused on art deterioration detection were selected. Most of these focused on exterior architectural damage. We also ran a semantic search using the tool LitLLM (with parameters set to GPT-4o-mini, temperature = 0.7, and max tokens = 1,000). This produced 64 potentially relevant articles, from which only 10 were selected.
+
+Complementary searches were conducted in other databases. The arXiv repository yielded 3 relevant preprints and 3 additional papers were identified in IEEE Xplore that we had not found on Scopus. Other relevant works were retrieved via snowball method applied to the reference lists of previously identified papers, for which the tool Connected Papers proved useful.
+
+% Review later on, to change numbers if necessary
+Altogether, 24 form the corpus of previous work analyzed in this study. We now present concise syntheses of four representative studies—selected for their direct relevance to deterioration detection and to comparisons between CNNs and ViTs. To complement these narrative summaries, we conclude the section with a comparative table that highlights how each work addresses domain, task, data types it was trained on, models employed, metrics, results and reproducibility~\ref{tab:prevwork}. 
+
+% DAVID
+\medskip
+\paragraph*{Artificial intelligence-assisted visual inspection for cultural heritage: State-of-the-art review}
+
+This review focuses on how AI, deep learning, and computer vision have been applied to surface damage detection (YOLO, Faster R-CNN, Mask R-CNN) in cultural heritage structures, mainly through case studies of monuments and historic buildings. Synthesizes approaches such as CNN-based object detection for identifying cracks, discolorations, or biological growth. However, unlike our planned research, the article does not address deterioration analysis in artwork. Its scope remains broad, reviewing applications across bridges, facades, and masonry structures~\cite{mishra_artificial_2024}. Whereas our work seeks to establish a detection-oriented framework for artwork, comparing classical computer vision with CNNs and Transformers, and contributing curated datasets for Costa Rican cultural heritage use cases.
+
+% DAVID
+\medskip
+\paragraph*{Artificial Intelligence-Based color Reconstruction of Mogao Grottoes Murals Using Computer Vision Techniques}
+
+The article develops an AI-driven restoration pipeline that combines spectral imaging, high-resolution digital scans, and a curated dataset of 50 pigments classified by chemical composition and stability. CNNs are used for feature extraction to detect faded or degraded areas, GANs generate color prediction for missing sections, and Transformer-based models analyze spatial and spectral context to refine pigment reconstruction. The framework integrates statistical analysis with expert validation to ensure historical fidelity. The results show that this approach accurately identifies pigment loss~\cite{yi_zhang_artificial_2025}, reconstructs hues consistent with historical records, and achieves reproducible and scalable restoration superior to manual methods.
+
+% ---- David ----
+\medskip
+\paragraph*{Anomaly detection in solar farms with a hybrid CNN-ViT model to enhance accuracyand efficiency}
+Recent advances in renewable energy monitoring highlight the potential of hybrid neural architecture that integrate Convolutional Neural Networks and Vision Transformers. In the domain of solar farm anomaly detection, a hybrid CNN-ViT model has been show to outperform standalone CNN and ViT approaches by effectively combining local feature extraction with global context modeling, achieving superior accuracy, precision, and robustness in real-world settings~\cite{darban_anomaly_2025}. This architecture leverages the CNN's ability to detect fine-grained defects such as cracks or hotspots, while simultaneously exploiting the ViT's capacity to capture larger structural or contextual patterns such as vegetation or soiling~\cite{darban_anomaly_2025}. The reported improvements in detection performance, together with statistically significant validation against strong baselines, demonstrate that hybrid models can bridge the limitations of each architecture and deliver actionable insights for large-scale inspection tasks~\cite{darban_anomaly_2025}. For cultural heritage conservation, where deterioration may occur both at micro structural levels and at broader surface scales, this hybrid paradigm provides empirical support for our hypothesis that CNNs and ViTs exhibit complementary strength, and underscores the potential applicability of such architectures to authenticity aware region level analysis.
+
+
+\medskip
+\paragraph*{An Analysis of Research Trends for Using Artificial Intelligence in Cultural Heritage}
+
+% Valentino
+After querying Web of Science and Scopus for 2019–2023 and preprocessing the results with ScientoPy, Gîrbacia (2024) maps 1,702 unique records and identifies five dominant lines of work—classification, computer vision, 3D reconstruction, intangible cultural heritage, and recommender systems—alongside a steady rise in publications concentrated on discovery, description, classification, and preservation tasks. The review inventories damage-related CV approaches (e.g., CNNs, YOLO, Faster R-CNN) and virtual restoration pipelines—mostly on architectural assets—but also underscores practice-critical limits. Many of the models found in this review focus on the "automatic organization and cataloging of cultural heritage objects" in addition to virtual restoration tasks, all while being constrained by their dependence on high-quality datasets, a lack of dedicated benchmarks in some subareas, the need for broader validation and scalability, and persistent difficulty detecting small or ambiguous defects—which collectively signals uneven readiness for preventive conservation~\cite{girbacia_analysis_2024}. For our work, this review is useful as a field map and as motivation for our region-level evaluation on artworks. 
+
+\medskip
+\paragraph*{ARTeFACT: Benchmarking Segmentation Models on Analogue Media Damage}
+% Valentino
+Ivanova et al. (2024) introducted \textit{ARTeFACT}, the first large-scale dataset and benchmark dedicated to damage detection acrpss diverse analogue media, incluide paintings, photographs, mosaics, frescoes, textiles and film. Their dataset comprises 418 high-resolution images with more than 11 000 pixel-level annotations spanning 15 types of damage (including cracks, stains, material loss, burns, light leaks, among others), further categorized by material and content. ARTeFACT incorporates expert textual descriptions of both content and deterioration, establishing a comprehensive ontology of damage. In addition, the authors conducted an evaluation of segmentation models: CNN based (using UPerNet and ConvNeXt), as well as ViT-based (with Swin and SegFormer), among other methods like diffusion and vision foundation models. Their results show that binary segmentation (damaged vs clean) achieves moderate performance (with F1 scores being around 0.6), but that multiclass segmentation across damage types is highly unreliable (F1 < 0.3), with all models struggle to generalize unseen materials and contents. This study demonstrated that, despite advances in image restoration, reliable and general-purpose damage detection remains a challenge~\cite{ivanova_artefact_2024}. For our work, ARTeFACT provides two important insights: (1) the need for domain-specific, expert-annotated datasets; and (2) evidence that both CNNs and ViTs exhibit limitations in generalization across cultural heritage contexts. Unlike ARTeFACT's broader international scope, we aim to localize these challenges to the Costa Rican context, targeting preventive conservation and similarly comparing CNNs against ViTs on deterioration patterns of national artworks.
+
+\medskip
+% Brandon
+\paragraph*{State-of-the-Art Fails in the Art of Damage Detection}
+Ivanova et al. (2024) introduce \textit{DamBench}, a benchmark and expert-annotated dataset for detecting damage across analogue media (paintings, photographs, textiles, mosaics, frescoes, film, etc.). The corpus comprises 418 high-resolution images with 11{,}000+ pixel-accurate masks spanning 15 damage classes, plus global labels for 10 material and 4 content categories; the authors also provide short expert textual descriptions per image. They evaluate strong semantic-segmentation baselines—UPerNet with ConvNeXt and with Swin, SegFormer, and DINOv2+MLP—alongside a text-guided diffusion approach (DiffEdit). Using F1 and mIoU under a leave-one-out protocol (by Material and by Content), results show moderate performance in some settings but poor generalisation across media types and damage categories; over/under-segmentation is common even with supervised training. The takeaway is that, despite restoration successes on known degradations, reliable, general-purpose damage \emph{detection} remains unresolved—pointing toward the need for multimodal cues and domain-specific evaluation in cultural-heritage workflows~\cite{ivanova_state---art_2024}.
+
+\medskip
+\paragraph*{A survey of computational techniques for fine art painting classification.}
+% Brandon
+At a high level, the field seems to have moved from hand-crafted features with Support Vector Machines (SVMs)/k-NN to Convolutional Neural Networks (CNNs) and Vision Transformers (ViTs) via transfer learning, mainly because datasets are small and messy~\cite{rathi_survey_2025}. The paper keeps stressing practical pain points—class imbalance, sparse metadata, and overfitting—and notes growing interest in explainable and multimodal (image+text) models.
+
+We also noted hybrid ideas that mix local texture detail from CNNs with global context from Transformers (e.g., Conformer) that could be relevant if we care about fine cracks and broader scene context~\cite{rathi_survey_2025}. Overall, most prior work still leans to classification (style/artist/genre) rather than regional-level detection/localization of deterioration, which matches the gap we want to address with a detection-first setup.
+
+\medskip
+\paragraph*{Integrating deep learning and machine learning for ceramic artifact classification and market value prediction}
+Hu et al.\ (2025) present a hybrid pipeline that first uses an improved YOLOv11 detector to classify ceramic attributes---decorative patterns, shapes, and craftsmanship---reporting mAP@50 $\approx$ 70\% and recall $\approx$ 91\%; then a Random Forest predicts auction price brackets from the extracted visual features with near state-of-the-art test accuracy ($\approx$99\%). The study also emphasizes interpretability (Grad-CAM) and feature-importance analyses to link visual cues to valuation. While their goal is classification/valuation rather than deterioration detection, the work is relevant as an example of (i) large, curated domain datasets, (ii) transfer-learning detectors fine-tuned to cultural-heritage attributes, and (iii) clear, task-appropriate metrics and protocol design---elements we can mirror when benchmarking CNNs vs.\ ViTs on region-level damage localization in Costa Rican artworks~\cite{hu_integrating_2025}.
+
+\medskip
+\paragraph*{U-shaped CNN-ViT Siamese Network with Learnable Mask Guidance}
+Cui et al. (2024) presentan \textit{U-Conformer}, una arquitectura híbrida para \textit{Building Change Detection} (BCD) en imágenes satelitales bi-temporales. El modelo combina convoluciones para capturar detalles locales con \textit{Vision Transformers} (ViTs) que modelan contexto global, organizados en una arquitectura U-shaped Siamese que facilita la detección multi-escala. Para mitigar el ruido de pseudo-cambios, integran un módulo de enmascaramiento guiado y una función de pérdida balanceada (BCE+Dice), mejorando la sensibilidad en clases minoritarias. Evaluado en tres benchmarks (LEVIR-CD, WHU-CD, GZ-CD), U-Conformer supera diez métodos SOTA alcanzando F1 hasta 94.6\% y IoU de 89.7\%. Aunque aplicado a teledetección, el aporte clave es demostrar cómo arquitecturas híbridas CNN–ViT con mecanismos de enmascaramiento guiado logran mayor robustez y generalización frente a variaciones de escala y ruido~\cite{cui_u-shaped_2024}.
+
+
+\medskip
+\paragraph*{Summary and research gap}
+
+Taken together, the previous reviews demonstrate that AI-assisted inspection has made notable progress in cultural heritage, particularly in structural health monitoring of monuments and buildings through CNN-based object detection and related classification tasks. Complementary surveys emphasize broader research trends in AI of cultural heritage, including classification, cataloging, and localization of said cultural heritage. Yet across this body of work, automated, region-level detections and localization of deterioration patterns in artworks remain underexplored, with no standardized benchmarks comparing classical vision, CNNs and Vision Transformers. Our framework addressees this gap by contributing curated datasets, empirical evaluations and Costa Rican specific case studies. This distinctions is summarized in Table~\ref{tab:prevwork}.
+
+
+\section{Methods}
+\label{sec:Methodology}
+
+\subsection{Objective and Research Questions}
+Since the goal of our study is to evaluate different deep learning architectures for damage segmentation in artwork images and determine how model type and training data affect performance and gene-ralization, we focused on comparing a CNN-based model, a ViT-based model, and a hybrid CNN–Transformer model on the task of multi-class damage detection and localization (pixel-wise segmentation of 15 damage categories).
+
+For RQ1 we trained three segmentation models – a CNN backbone, a ViT backbone, and a CNN/ViT hybrid – on a common training set and evaluate them on the same test set. We compared their segmentation performance using mean Intersection-over-Union (mIoU) and macro-averaged F1 score as primary metrics. This provides a fair head-to-head comparison of in-domain effectiveness.
+
+For RQ2, we can simulate training data impact by creating a simple subsampling experiment, training the models on progressively smaller fractions of the training data (e.g. 100\%, 50\%, 25\%, 10\%). For each fraction, we measured the resulting mIoU and F1 on the validation/test set. Plotting the learning curve of performance vs. data fraction revealed how quickly each model degrades with less data. This helps assess which architecture is most data-efficient or robust in low-data regimes.
+
+For RQ3, after training the models on the primary dataset (described below), we then tested them on a separate external dataset from an art collection with the same damage label taxonomy. By evaluating the drop in metrics (mIoU, F1) when applied to this new dataset, we can quantify generalization across collections. We will also qualitatively inspected segmentation outputs on the new collection to identify failure modes. This simulates a real-world scenario of applying a model to artworks from a museum not seen during training.
+
+\subsection{Dataset}
+\paragraph*{Primary Dataset (ARTeFACT)}
+For training and in-domain evaluation, we used the public ARTeFACT dataset introduced by Ivanova et al~\cite{ivanova_artefact_2024}. This dataset comprises 418 high-resolution images of artwork spanning various media (paintings, photographs, textiles, etc.) and time periods, with pixel-accurate annotations of damage regions. In total there are over 11,000 annotated instances of damage belonging to 15 distinct damage classes. Each image is also categorized into one of 10 material types (canvas, paper, film, glass, wood, etc.) and one of 4 content types (artistic depiction, photographic depiction, line art, geometric patterns), reflecting the diversity of the data. The damage taxonomy includes a broad range of deterioration phenomena such as \lstinline|Material Loss| (missing or eroded sections of the material) and \lstinline|Peel| (areas where layers of paint or substrate have separated or flaked off). Surface contaminants are represented by categories like \lstinline|Dust|, \lstinline|Hair|, and \lstinline|Dirt|, which denote foreign particles or soiling on the artwork’s surface. Several classes capture mechanical or structural damage: for example, \lstinline|Scratch|, \lstinline|Puncture|, \lstinline|Fold|, and \lstinline|Cracks| correspond to physical gouges, holes, creases, or fissures in the material, often resulting from mishandling or stress over time. Other defined types include \lstinline|Stamp|, \lstinline|Sticker| and \lstinline|Writing|, marking unintended human interventions or labels on the artwork, and \lstinline|Staining| and \lstinline|Burn Marks|, which indicate chemical or thermal damage such as pigment discoloration or scorch marks. A category unique to photographic media is \lstinline|Light Leak|, referring to areas degraded by unwanted exposure to light (common in film-based photographs). A special label \lstinline|Clean| is used for regions with no damage, and any image border or unannotated area is labeled as background. These classes vary greatly in visual appearance and frequency. Notably, Peel and Material loss are among the most common damage types in the dataset, whereas Light leak is relatively rare but when it occurs it covers a large area of the image~\cite{ivanova_artefact_2024}. Other classes like Dirt, Fold, and Staining have intermediate frequency and highly variable size/severity~\cite{ivanova_artefact_2024}. This imbalance poses a challenge: many images contain large clean areas with only small damaged regions, and certain damage categories have far fewer examples than others. We accounted for this in model training (via loss function) and evaluation (using macro-averaged metrics).
+
+\paragraph*{Data Splits}
+We adopted a training/validation/test split that ensures all damage categories and material types are represented across sets (a stratified split). Following the recommendation of Ivanova et al.~\cite{ivanova_artefact_2024}, we created the split such that the training set contains roughly 70\% of the images, the validation set 15\%, and the test set 15\%. This yielded approximately 290 train images, 60 val, 60 test (exact counts vary slightly by ensuring at least one example of each damage type in each set). The stratification helps prevent a scenario where, for example, a particular material (e.g. “Wood” or “Glass”) or damage type is completely missing from validation or test, which could unfairly skew results. No images from the same artwork or collection appear in both training and test. All model selection (hyperparameter tuning, early stopping) was done on the validation set, and final performance for RQ1/RQ2 was reported on the held-out test set.
+
+% External Dataset: Ocupamos encontrar un dataset externo en lo posible que funcione como un "unseen test" (no usado para training o validation) que tenga los mismos labels o manualmente realizar merging de class labels / annotations
+
+\paragraph*{Data Preprocessing}
+All images were kept in RGB color and no significant color correction or filtering was applied beyond what the dataset provides. We resized or downsampled images only if needed to fit memory during patch processing, otherwise maintaining the original resolution for maximal detail. Prior to feeding to the models, image pixel values were normalized to the range expected by the pretrained backbones (for ImageNet-pretrained models, we subtracted the mean and divided by the standard deviation of ImageNet training data). We did not perform explicit contrast enhancement or denoising, as the provided scans are generally of good quality~\cite{ivanova_artefact_2024}. However, our data augmentation implicitly covered some variations in color and scale.
+
+\subsection{Model Architecture and Training Pipeline}
+
+To address our research questions, we implemented a semantic segmentation pipeline with three different model architectures. All three models share a similar encoder-decoder design: an encoder backbone (convolutional, transformer, or hybrid) extracts multi-scale features from the input image, and a decoder head produces a pixel-wise classification (damage type) mask. For a fair comparison, we used the same decoder framework for all models – the UPerNet (Unified Perceptual Parsing Network)~\cite{xiao_unified_2018}. UPerNet is a state-of-the-art segmentation architecture that combines a Feature Pyramid Network with spatial pooling, and it can flexibly plug in various backbone networks~\cite{ivanova_artefact_2024}. We chose UPerNet so that differences in performance can be attributed mainly to the backbone (CNN vs ViT vs hybrid), not the decoding mechanism. Below we detail each model variant:
+
+\subsubsection{CNN Model – ConvNeXt-L + UPerNet}
+For the convolutional baseline, we used ConvNeXt-Large as the backbone. ConvNeXt is a modernized CNN architecture (approx. 200 million parameters in the Large variant) that was designed to compete with Transformers by adopting many of their training and design improvements~\cite{liu_convnet_2022,wang_upernet_2023}. It builds on the ResNet paradigm but incorporates ViT-inspired features such as large kernel convolutions, fewer activation layers, and normalization layers shifted to new locations, resulting in a pure-CNN that achieves transformer-level accuracy~\cite{liu_convnet_2022}. We selected ConvNeXt-L due to its strong ImageNet performance and robust feature hierarchy for vision tasks (it has four stages of downsampling similar to ResNet, yielding feature maps at 1/4, 1/8, 1/16, 1/32 of input size). The UPerNet decoder will take these multi-scale feature maps and construct the segmentation output via lateral connections~\cite{wang_upernet_2023}.
+\paragraph*{Pretraining}
+We initialized ConvNeXt-L with weights pretrained on ImageNet-21k (a larger 21,000-class ImageNet variant) if available, or on ImageNet-1k if not. This gave the model a rich base of learned visual features. Furthermore, the UPerNet decoder weights were initialized from a model pretrained on the ADE20K segmentation dataset, following Ivanova et al.’s approach~\cite{ivanova_artefact_2024}. Using ADE20K-pretrained weights (which were available for ConvNeXt+UPerNet from prior work) gave the model a head-start in segmentation-specific feature fusion. This combination (ImageNet-pretrained encoder and ADE20K-pretrained decoder) is fine-tuned on our damage data.
+
+\subsubsection{Transformer Model – Swin Transformer + UPerNet} 
+For the vision transformer approach, we used Swin Transformer (base size) as the backbone, again coupled with a UPerNet decoder. Swin Transformer, introduced by Liu et al.~\cite{liu_swin_2021}, is a hierarchical ViT architecture that processes images in a patch-wise manner at multiple scales. Unlike a standard ViT which computes global self-attention on a fixed patch grid, Swin divides the image into local windows and computes self-attention within each window to reduce complexity. It uses a shifted window scheme: by shifting the window positions between transformer layers, Swin allows information to flow across windows, achieving better global context with less cost~\cite{liu_swin_2021}. This design makes Swin’s attention computation linear in the number of image pixels, significantly improving scalability and latency for high-resolution inputs~\cite{liu_swin_2021}. Over the network’s stages, Swin gradually merges patches (like a CNN downsampling) to create a pyramid of feature maps, hence it acts as a hierarchical backbone producing multi-scale features similar to a CNN~\cite{liu_swin_2021}. We used the Swin-Base variant (which has roughly 88M parameters) to ensure a fair capacity relative to ConvNeXt-L. 
+\paragraph{Pretraining}
+We initialized the Swin backbone with published weights. We leveraged self-supervised pretraining for stronger features. For instance, MAE (Masked Autoencoder)~\cite{arslan_masked_2025} or DINOv2~\cite{oquab_dinov2_2024} pretraining, which have been shown to imbue ViTs with semantically rich representations~\cite{ivanova_artefact_2024}. If such pretrained weights (e.g. Swin backbone pre-trained via DINOv2’s method) were accessible, we used them; otherwise, we fell back to ImageNet-1k supervised weights. As with the CNN model, the UPerNet decoder is initialized from ADE20K-pretrained weights for Swin+UPerNet~\cite{ivanova_artefact_2024}. We then proceed to fine-tuning them on ARTeFACT's damage segmentation task. This model reflects the state-of-the-art transformer segmentation approach (similar to the top-performing method in ARTeFACT, which was UPerNet with a Swin backbone~\cite{ivanova_artefact_2024}).
+
+\subsubsection{Hybrid Model – CoaT (Co-Scale Conv-Attentional Transformer)}
+As an example of a hybrid architecture that combines convolutional and transformer elements, we choose CoaT~\cite{xu_co-scale_2021} as our third model. CoaT stands for Co-Scale Conv-Attentional Transformer. It is a vision transformer architecture augmented with convolutional mechanisms to capture locality and improve efficiency. Specifically, CoaT introduces a conv-attentional module that uses convolution operations to implement relative positional embedding inside the self-attention layers~\cite{xu_co-scale_2021}. This allows the model to preserve locality inductive bias and reduces the computational overhead of standard attention (by factorizing attention with conv-based position encoding)~\cite{xu_co-scale_2021}. Moreover, CoaT uses a co-scale hierarchy: it has multiple branches (or stages) operating at different resolutions in parallel, as well as serial connections across stages~\cite{xu_co-scale_2021}. In practice, CoaT’s encoder is built from groups of transformer layers that process a low-resolution representation and a high-resolution representation concurrently, exchanging information (the “co-scale” design). A series of serial blocks first reduce the resolution, then parallel multi-scale blocks process features at coarser and finer scales together~\cite{xu_co-scale_2021}. This architecture is designed to enrich the model’s multi-scale feature learning and combine the strengths of CNNs (local feature extraction) and ViTs (global attention) in one network~\cite{xu_co-scale_2021}. We implemented CoaT as the backbone and paired it with a lightweight segmentation head. (In initial experiments, we considered using a standard U-Net style decoder for CoaT, since CoaT itself outputs multi-resolution feature maps. If time allows, we may integrate CoaT with the same UPerNet decoder for consistency, but compatibility needs to be verified.) 
+\paragraph{Pretraining}
+We initialized parts of CoaT from available pretrained weights (the official CoaT models were pretrained on ImageNet-1k~\cite{xu_co-scale_2021}). As CoaT is a relatively new model, we used the published pretrained checkpoint for the specific variant (e.g., CoaT Mini or Small, depending on parameter count ~ 20–40M to be closer to the other models’ size). This hybrid model allowed us to test whether a combined approach can outperform pure CNN or pure Transformer.
+% Eliminar luego, pero por ahora mantener para comparar luego con Christian y Rubén la elección
+(We also considered TransUNet~\cite{chen_transunet_2021} (a U-Net with a Transformer encoder) as an alternative hybrid. TransUNet uses a CNN encoder to extract low-level features and then feeds those to a ViT for global context, finally combining both in a decoder~\cite{chen_transunet_2021}. While TransUNet has proven effective in medical image segmentation by leveraging both local and global features~\cite{chen_transunet_2021}, we opted for CoaT to explore a more integrated CNN/Transformer design beyond the U-Net paradigm.)
+
+\subsection*{Training Procedure}
+All models were trained using an identical pipeline for fairness. Because the original images were very high resolution, we employed a patch-based training strategy~\cite{ivanova_artefact_2024}. During each training epoch, each image was randomly augmented and cropped into a fixed-size patch (e.g., $512×512$ pixels) to feed into the network. We used data augmentation techniques similar to those in the ARTeFACT benchmark~\cite{ivanova_artefact_2024} like random scaling (resizing) of the image by ±20\%, random horizontal flip (and vertical flip with some probability), and random crop to the model’s input size (if the image is larger than $512×512$, we take a random crop; if smaller, we resize up or pad as needed). These augmentations helped expose the model to varied orientations and scales of damage, reflecting how damage might appear at different zoom levels or in different positions~\cite{ivanova_artefact_2024}. We did not perform color jitter or intensity augmentation, so as to preserve the true color cues of certain damages (e.g. yellowing for staining vs. dark char for burn marks), though minor lighting variations were indirectly covered by random scaling and the diverse imaging conditions in the dataset. We enabled deterministic training where possible: a fixed random seed was set for all data loaders and augmentation operations, and we used PyTorch’s deterministic convolution algorithms for reproducibility. This ensured that results could be replicated and that differences between models were not due to random chance.
+
+All models were trained using the AdamW optimizer~\cite{loshchilov_decoupled_2019}. We adopted an initial learning rate (LR) scaled to each model's size: for the ConvNeXt-L (which has a large capacity), we used a base LR on the order of $(5×10^(-4)$, whereas for the smaller CoaT model we started slightly higher ($1×10^(-3)$), following the original papers' recommendations~\cite{liu_swin_2021,liu_convnet_2022,wang_upernet_2023,xu_co-scale_2021,ivanova_artefact_2024}. The weight decay was set to 0.01 for all models. We used a macro-averaged Dice loss during training, as suggested by Ivanova et al.~\cite{ivanova_artefact_2024}. This loss computes the Dice coefficient for each class independently and averages them, which effectively balances the loss contribution of each damage class regardless of frequency. The motivation is that the Clean class (undamaged background) dominates the pixels, and a simple pixel-wise cross-entropy could be biased to mostly predicting clean regions. By using macro Dice loss (or equivalently a Dice loss with equal class weighting), we mitigate the class imbalance in the gradient signal~\cite{ivanova_artefact_2024}. In practice, we combined the Dice loss with a standard cross-entropy loss (with class weighting inversely proportional to class frequencies) to ensure stable training. This mixed loss has been found to improve convergence in segmentation tasks where some classes were extremely small~\cite{ivanova_artefact_2024}.
+
+\subsection*{Learning Rate Schedule and Stopping}
+We employed an adaptive learning rate schedule rather than a fixed schedule, given that we monitored validation performance. Specifically, we used early stopping with a patience of 10 epochs (if the validation macro-F1 score does not improve for 10 consecutive epochs, training is stopped and the best model checkpoint is retained)~\cite{ivanova_artefact_2024}. In conjunction with early stopping, we implemented a Reduce-on-Plateau scheduler: if the F1 score has plateaued for several epochs, we reduce the learning rate by a factor of 0.2 to fine-tune the model in later stages. This reflects “best practice” schedules often used in the original model training (for example, ConvNeXt was trained with cosine decay over many epochs~\cite{liu_convnet_2022}, and reducing LR when progress stalls is a common strategy). In our case, since we didn't predefine a fixed number of epochs, this adaptive schedule with early stopping automatically anneals the learning rate and stop training when further gains were minimal. We also started with a brief warmup period for the learning rate (e.g., 500 warmup iterations) to avoid instability at the very beginning of training (this is especially important for the transformer models). We trained each model on an \todo{MODE LNAME} GPU (specifically, we used a \todo{AMOUNT} \todo{GPU MODEL TYPE} with \todo{XX AMOUNT} GB VRAM). The large memory allowed a batch size of up to 2 patches $(512×512)$ for ConvNeXt-L and Swin-B (which were memory-intensive), and up to 4 for the smaller CoaT model. Training typically ran for ~30–50 epochs until early stopping triggers. We ensured that each model was trained using the exact same training/validation splits and augmentation pipeline, so that their results were directly comparable.
+
+\subsection*{Inference}
+At test time, we could not feed a whole high-resolution image into the model due to GPU memory limits. Therefore, we followed a sliding window inference approach~\cite{ivanova_artefact_2024}. Each test image was divided into patches of size 512×512, and we allowed a 50\% overlap between adjacent patches. The model predicted a segmentation mask for each patch. To seamlessly stitch the patches back into a full-size output, we applied a Hann window weighting to the patch predictions~\cite{ivanova_artefact_2024}. A Hann window is a smooth tapering mask (raised cosine) that down-weights the edges of each patch, so that when overlapping patches were averaged, there were no sharp seams. This technique, proposed by Pielawski and Wählby (2020)~\cite{pielawski_introducing_2020}, reduces edge artifacts in tiled predictions. We then reconstructed the full image mask from the weighted patch outputs. For each test image in both the ARTeFACT test set and the external set, we computed all evaluation metrics by comparing the predicted mask to the ground truth mask. This patch-wise inference ensured that our models can handle arbitrarily large images and that performance reflects the ability to detect damage in the entire artwork, not just small crops.
+
+\subsection*{Evaluation Metrics}
+
+We evaluate model performance using a comprehensive set of metrics that cover both classification accuracy and segmentation quality, in order to answer the RQs thoroughly. For image-level classification tasks (if any) or overall damage presence classification, we would use conventional metrics like Accuracy, Precision, Recall, and F1-score. Accuracy is the fraction of correct predictions overall; however, in our context of highly imbalanced data (much more non-damage than damage), accuracy is less informative (a model labeling everything as “undamaged” could still get high accuracy). Thus, we place more emphasis on precision and recall. Precision (Positive Predictive Value) is the proportion of predicted positives that are actual positives (e.g. the fraction of pixels our model labels as damaged that truly belong to a damage region). Recall (Sensitivity) is the proportion of actual positives that are correctly identified (e.g. the percentage of ground-truth damaged pixels that our model successfully detects) \cite{herbert_forecasting_2023,chen_transunet_2021}. In segmentation, we can compute precision and recall per class (damage type) or for a binary damaged/not-damaged mask. We will often report the macro-averaged Precision and Recall, which average these metrics across all classes equally, to ensure that performance on rare classes is visible. The F1-score is the harmonic mean of precision and recall ($F1 = \frac{2\times \text{precision} \times \text{recall}}{\text{precision} +\text{recall}}$), giving a single measure that balances the trade-off. A high $F1$ indicates the model is achieving good recall without sacrificing much precision (or vice versa). In our case, we focus on the macro $F1$ (averaged over classes) as a summary of segmentation accuracy across all damage categories~\cite{ivanova_artefact_2024}
+
+For evaluating the quality of the segmented regions themselves, the primary metric is Intersection over Union ($IoU$)~\cite{rezatofighi_generalized_2019}, also known as the Jaccard Index~\cite{jaccard_distribution_1912,murphy_finley_1996}. $IoU$ is defined as the area of overlap between the predicted mask and the ground-truth mask, divided by the area of their union. We compute $IoU$ for each damage class $c$ as: $IoU_c = \frac{\text{True Positive pixels}_c}{\text{True Positive} + \text{False Positive} + + \text{False Negative pixels}_c}$. An $IoU$ of 1.0 means perfect overlap, whereas an $IoU$ of 0 means no overlap. Because we have multiple classes, we report the Mean $IoU$ ($mIoU$), which is the average of $IoU$s across the 15 damage classes (ignoring the background class). We use the macro-averaged $IoU$ (which is equivalent to standard $mIoU$ since each class is weighted equally) as it was the primary benchmark metric in prior segmentation challenges and the ARTeFACT benchmark\cite{ivanova_artefact_2024}. In practice, $mIoU$ penalizes both false misses and false alarms in a spatially intuitive way. If the model’s predicted damaged region spills beyond the true region or misses parts of it, the overlap will be partial, lowering $IoU$. We will present per-class $IoU$s in a table to analyze which damage types are well-detected and which are challenging (answering parts of RQ1 and RQ3). For instance, we expect high $IoU$ on large, salient damages like big Material loss regions, but possibly low $IoU$ on fine-grained damages like hairline Cracks or tiny Dust specks, especially if the model struggles with those.
+
+In summary, our evaluation will include: (a) pixel-level Accuracy (mostly for reference, as it will be high due to many background pixels), (b) Precision, Recall, $F1$ for the damage vs. clean classification (macro-averaged over classes, giving equal weight to each damage type), and (c) mIoU for segmentation quality (our key metric for comparing models), We will also examine per-class $F1$ and $IoU$ to understand model strengths/weaknesses: for instance, a model might achieve an $IoU$ above 0.60 on Cracks but only 0.20 on Light leak, indicating it struggles with the latter. These metrics together provide a comprehensive view of performance, allowing us to answer RQ1 quantitatively. For RQ2 (data ablation), we will track how these metrics (especially $mIoU$ and $F1$) degrade as training data is reduced. For RQ3 (cross-collection), we will compare the metrics on the external test set vs. the internal test set to gauge the generalization gap.
+
+\section{Results}
+\label{sec:Results}
+
+Our analysis methodology is structured around the three RQs, ensuring that we extract the relevant results for each:
+
+\paragraph*{RQ1 (CNN vs ViT vs Hybrid performance)} After training all three models on the full ARTeFACT training set, we will evaluate them on the ARTeFACT test set and record their metrics. We will prepare a comparative results table listing, for each model, the $mIoU$, macro-F1, and per-class $IoU$ and $F1$. This allows side-by-side comparison. We will specifically look at the overall $mIoU$ as a summary e.g., does the Swin Transformer model outperform ConvNeXt by a significant margin? We will also test for statistical significance of differences: given the relatively small test set (60 images), we may apply a paired significance test such as a paired t-test or Wilcoxon signed-rank on per-image $IoU$s to see if one model's $IoU$s are consistently higher. 
+% Eliminar según el tiempo faltante
+Additionally, we will generate qualitative visualizations: for a few representative test images, we'll plot the ground truth mask and the predicted masks from each of the three models. Visual inspection can highlight the differences (for example, the CNN might miss fine cracks that the transformer detects, or vice versa). These qualitative results will be used to supplement the quantitative metrics in answering RQ1. We will analyze which damage classes each model does best on. For instance, if the ConvNeXt excels at Dust detection but the Swin is better at Staining, we will note suc
+h findings.
+
+\paragraph*{RQ2 (Training data size)} We will analyze the results of training-set subsampling by constructing a learning curve. Specifically, for each subset size (100\%, 50\%, 25\%, 10\% of training data)\todo{posiblemente se elimine o se modifique RQ2}, we will plot the model’s $mIoU$ on the validation set (or test set via cross-validation if needed). We plan to do this experiment primarily with one model (likely the best model from RQ1, to see how its performance degrades, or we may do it for all three models to compare their data efficiency). In the analysis, we will look for the point of diminishing returns: e.g., if using 50\% of data yields ~90\% of the full-data $mIoU$, that suggests the model is not extremely data-hungry. Conversely, if performance drops off steeply below 100\%, that indicates the model needs the full dataset. To ensure robust conclusions, each subset experiment can be repeated 2–3 times with different random selections of training images (especially for the smaller 10\% subset) and results averaged, reducing variance due to which samples were picked. We will present a plot of $mIoU$ (and possibly $F1$) vs. training set percentage, and highlight differences between models if applicable. This will answer RQ2 by showing, for example, that the transformer model might overfit with less data or that the CNN's performance degrades more gracefully when data is limited. Any notable trend (such as the hybrid model achieving higher relative performance at low data fractions due to its inductive biases) will be discussed. We will also monitor training stability in these experiments, e.g., did the model converge when trained on only 10\% of data or did it get stuck? If needed, we might adjust regularization for very low-data runs.
+
+\paragraph*{RQ3 (Cross-collection evaluation)} To analyze generalization, we will take the model (or models) trained on the ARTeFACT dataset and evaluate them on the external dataset test images\todo{Encontrar dataset externo}. We will compute the same metrics ($IoU$, $F1$, etc.) on this external set. The key analysis will be comparing these metrics to the in-domain test performance. We expect a drop in scores; the magnitude of the drop will be reported. For example, if the ConvNeXt model had $mIoU$ = 0.45 on ARTeFACT test but only 0.30 on the external images, that is a significant generalization gap. We will tabulate the metrics for ARTeFACT-test vs external-test side by side. Furthermore, we will break down performance by damage class on the external set to see which types generalize well. It could be the case that common, simple damages (dust, scratches) generalize fine, while complex or collection-specific damages (perhaps Burn marks if the external set has different kinds of burns) do not. We will also present qualitative results on a few external images: overlaying the model's predicted damage mask on the image, compared to ground truth. This can reveal the types of mistakes made out-of-domain, e.g., does the model falsely label a patina or intentional mark as damage? Are there entire damage regions it misses because they look different from anything in ARTeFACT? We will discuss any such observations. If feasible, we will involve a domain expert (a conservator) to qualitatively judge the usefulness of the model's output on the new collection. While a formal user study is out of scope, anecdotal feedback can be mentioned (e.g., “the model detected several mold spots on a historic document that were also flagged by the conservator, but it misclassified some water stains as general dirt”). The analysis for RQ3 will conclude whether our model trained on ARTeFACT can be directly applied to a new collection or if retraining/finetuning is necessary for reliable results. This informs the feasibility of using such AI tools across institutions (a key consideration for real-world impact).
+
+
+
+As seen in Fig.~\ref{fig:figname}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{images/usability2c.pdf}
+    \vspace*{-5mm}\caption{Figure caption}
+    \label{fig:figname}
+\end{figure}
+
+
+\subsection{Results for RQ1}
+\label{sec:ResultsRQ1}
+
+
+\section{Discussion and Future Work}
+\label{sec:Discussion}
+
+.
+
+
+\section*{Acknowledgment}
+
+% Escuela de Ciencias de la Computación e Informática (ECCI)
+% Centro de Investigaciones en Tecnologías de la Información y Comunicación (CITIC)
+This research was supported by the School of Computer Science and Informatics (ECCI), and the Center for Research in Information and Communication Technologies (CITIC), both of the University of Costa Rica (UCR).
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{references.bib}
+
+\end{document}

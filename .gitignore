@@ -1,0 +1,57 @@
+# Data
+data/
+*.jpg
+*.png
+*.npy
+
+# Logs
+logs/
+wandb/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.fls
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.pdf  # Opcional: si no quieres versionar PDFs compilados
+main.pdf  # Alternativa: solo ignorar el PDF principal
+
+# Model checkpoints and outputs
+checkpoints/
+outputs/
+results/
+*.pth
+*.ckpt
+*.safetensors
+
+# Environment
+.env
+venv/
+env/
+*.venv
+
+# Configs (si contienen rutas locales o secretos)
+# configs/local_*.yaml
+
+# Dataset splits/manifests (si son generados)
+# data/splits/*.json
