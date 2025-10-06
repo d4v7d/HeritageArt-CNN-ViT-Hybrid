@@ -1,14 +1,11 @@
+# Actions taken in the repo
 1. Create folders for repo structure src/datasets, src/infer, src/models
 
 2. Create a virtual enviroment:
-    # In your project root
     cd ~/Documents/HeritageArt-CNN-ViT-Hybrid
-
-    # Create venv
     python3 -m venv venv
-
-    # Activate it
     source venv/bin/activate
+
 3. Created requirements.txt file and executed pip install -r requirements.txt
 
 4. Install Tools for pre-commit
@@ -20,33 +17,22 @@
     pre-commit install
     pre-commit run --all-files
 
-7. Created the yaml files in configs
+7. Created the yaml files in configs and commit chagnes
 
-5. Added somestuff to the readme
+8. Organized experiments folder (2025-10-06):
+    - Moved cuda-test.py, MMSeg-test.py, demo/image_demo.py → experiments/
+    - Created experiments/README.md with usage instructions
+    - Updated pre-commit hooks to exclude experiments/ from linting
+    - Adjusted paths in moved scripts to work from new location
 
-Next actions:
-
-Add pre-commit, black/flake8, Hydra/YAML configs
-
-# With venv activated
-pre-commit install
-
-# Test on existing files
-pre-commit run --all-files
-
-# Create Hydra config structure
-   ```bash
-   mkdir -p configs/model configs/data
-   touch configs/config.yaml configs/model/cnn.yaml configs/data/artefact.yaml
-   ```
-
-# Implement dataset loader (src/datasets/artefact_dataset.py)
+# Next actions:
 
 Implement src/datasets/artefact_dataset.py using the scaffold code from the plan
 
 Write a test in tests/test_dataset.py
 
-Discussion about google collab:
+# Discussion about google collab:
+
 Can This Run in Google Colab? Yes, with Modifications
 Based on the From-Paper-to-Plan.md and your current setup, yes, you can run this in Google Colab, but the plan is currently designed for local execution. Here's the breakdown:
 

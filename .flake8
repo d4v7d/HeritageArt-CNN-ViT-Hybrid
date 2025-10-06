@@ -11,8 +11,6 @@ exclude =
     checkpoints,
     data,
     *.egg-info,
-    MMSeg-test.py,
-    demo/,
-    cuda-test.py
+    experiments/
 per-file-ignores =
     __init__.py:F401

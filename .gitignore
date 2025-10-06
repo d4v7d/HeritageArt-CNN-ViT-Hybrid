@@ -1,59 +1,43 @@
-# Data
-data/
-*.jpg
-*.png
-*.npy
-
-# Logs
-logs/
-wandb/
-*.log
-
 # Python
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
-*.egg-info/
-dist/
-build/
-.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
 
-# IDE
+# Outputs y datos
+outputs/
+logs/
+checkpoints/
+data/
+*.pth
+*.ckpt
+wandb/
+
+# Experiments outputs (pero SÍ commitear los scripts)
+experiments/**/*.jpg
+experiments/**/*.png
+experiments/**/result.*
+
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# LaTeX
-*.aux
-*.bbl
-*.blg
-*.fls
-*.out
-*.synctex.gz
-*.fdb_latexmk
-*.pdf  # Opcional: si no quieres versionar PDFs compilados
-main.pdf  # Alternativa: solo ignorar el PDF principal
+# OS
+.DS_Store
+Thumbs.db
 
-# Model checkpoints and outputs
-checkpoints/
-outputs/
-results/
-*.pth
-*.ckpt
-*.safetensors
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
 
-# Environment
-.env
-venv/
-env/
-*.venv
-./_mmseg_demo/
-_mmseg_demo/
-
-# Configs (si contienen rutas locales o secretos)
-# configs/local_*.yaml
-
-# Dataset splits/manifests (si son generados)
-# data/splits/*.json
+# MyPy
+.mypy_cache/
