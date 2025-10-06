@@ -1,0 +1,20 @@
+---
+defaults:
+  - model: cnn              # Carga configs/model/cnn.yaml por defecto
+  - data: artefact          # Carga configs/data/artefact.yaml
+  - train: default          # Carga configs/train/default.yaml
+  - _self_                  # Aplica valores de este archivo al final
+
+# Configuración global
+seed: 42
+device: cuda
+output_dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}  # Timestamped folders
+
+# Logging
+experiment_name: heritage-art-segmentation
+log_every_n_steps: 10
+save_checkpoint_every: 5  # epochs
+
+# Reproducibility
+cudnn_deterministic: true
+cudnn_benchmark: false

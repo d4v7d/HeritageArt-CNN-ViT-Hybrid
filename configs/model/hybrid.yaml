@@ -1,0 +1,21 @@
+---
+# CoaT-Mini + UPerNet (o tu arquitectura híbrida)
+name: coat_upernet
+num_classes: 16
+
+backbone:
+  type: coat_mini  # O coat_small
+  pretrained: imagenet-1k
+  parallel_blocks: [2, 2, 2, 2]  # Bloques CNN/ViT paralelos por stage
+  serial_blocks: [2, 2, 2, 2]    # Bloques seriales
+
+decoder:
+  type: upernet
+  in_channels: [152, 216, 320, 512]  # CoaT-Mini dims (verificar paper)
+  pool_scales: [1, 2, 3, 6]
+  channels: 512
+
+loss:
+  ce_weight: 1.0
+  dice_weight: 1.0
+  ignore_index: 255

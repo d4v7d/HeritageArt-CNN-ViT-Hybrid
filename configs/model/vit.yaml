@@ -1,0 +1,23 @@
+---
+# Swin-Base + UPerNet
+name: swin_upernet
+num_classes: 16
+
+backbone:
+  type: swin_base
+  pretrained: imagenet-22k  # Or DINOv2/MAE if available
+  img_size: 512
+  patch_size: 4
+  window_size: 7
+  frozen_stages: -1
+
+decoder:
+  type: upernet
+  in_channels: [128, 256, 512, 1024]  # Swin-Base pyramid
+  pool_scales: [1, 2, 3, 6]
+  channels: 512
+
+loss:
+  ce_weight: 1.0
+  dice_weight: 1.0
+  ignore_index: 255

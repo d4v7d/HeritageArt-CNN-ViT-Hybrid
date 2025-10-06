@@ -1,6 +1,6 @@
 # From Paper to Plan: Building the Hybrid CNN–ViT Artifact (with DG) — *ARTeFACT-enabled*
 
-> **TL;DR**  
+> **TL;DR**
 > A single, reproducible semantic-segmentation pipeline with a *common decoder (UPerNet)* and *swappable backbones* (CNN / ViT / Hybrid), evaluated *in-domain* and under *domain generalization* (LOMO/LOContent) on **ARTeFACT**. High-res handled via Hann-blended tiling; metrics include *mIoU, macro-F1*, with *ECE* and *κ* adjuncts; all with *bootstrap 95% CIs*. DG closures via *style/frequency aug*, *CORAL/IRM/Fishr*, and *TENT*.
 
 ## Contents
@@ -39,7 +39,7 @@ We will build a **semantic-segmentation** pipeline that can be instantiated with
 
 **Dataset**: **ARTeFACT** (primary), with **16 semantic classes** from day one (**0=Clean; 1..15 damage**), and **Background = 255** (ignored in loss/metrics). The dataset provides **material** and **content** metadata enabling **LOMO** (Leave-One-Material-Out) and **LOContent** (Leave-One-Content-Out) splits for Domain Generalization (**DG**).
 
-**Task**: Binary (Damage vs Clean) and multiclass (taxonomy of 15 damage types + Clean). 
+**Task**: Binary (Damage vs Clean) and multiclass (taxonomy of 15 damage types + Clean).
 
 **Metrics**: mIoU and macro-F1 as primaries; calibration (ECE) and expert agreement (κ on tiles) as adjuncts.
 

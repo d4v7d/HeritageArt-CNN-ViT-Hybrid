@@ -36,7 +36,7 @@ Verifique funcionalidad y versiones corriendo cuda-test.py
 Ahora use `OpenMIM` para escoger el mmcv wheel correcto según la versión de Torch/CUDA:
 
 ```
-# install base packages 
+# install base packages
 pip install -r requirements.txt
 
 # let MIM resolve the correct mmcv for Torch/CUDA
@@ -53,7 +53,7 @@ mim install "mmpretrain>=1.0.0"
 mim download mmsegmentation \
   --config pspnet_r50-d8_4xb4-80k_ade20k-512x512 \
   --dest ./_mmseg_demo
-``` 
+```
 
 Para uso posterior, específico a la máquina:
 ```
@@ -90,8 +90,8 @@ pre-commit install
 
 Download configs + checkpoints (weights) in one line
 
-## UPerNet + Swin (ADE20K): 
-The official Swin-Transformer segmentation repo lists UPerNet configs and direct “Model” links (e.g., `upernet_swin_base_patch4_window7_512x512_160k_ade20k.pth`). You can also use mim once you know the https://github.com/SwinTransformer/Swin-Transformer-Semantic-Segmentation config path. 
+## UPerNet + Swin (ADE20K):
+The official Swin-Transformer segmentation repo lists UPerNet configs and direct “Model” links (e.g., `upernet_swin_base_patch4_window7_512x512_160k_ade20k.pth`). You can also use mim once you know the https://github.com/SwinTransformer/Swin-Transformer-Semantic-Segmentation config path.
 
 Swin-Base + UPerNet (ImageNet-22k pretrain, ADE20K finetune, 512x512):
 ```
@@ -102,8 +102,8 @@ mim download mmsegmentation \
 This will drop a matching `.py`config and `.pth` checkpoint in `checkpoints/`.
 
 
-## UPerNet + ConvNeXt-Large (ADE20K): 
-available via OpenMMLab model zoo and Hugging Face (openmmlab/upernet-convnext-large). 
+## UPerNet + ConvNeXt-Large (ADE20K):
+available via OpenMMLab model zoo and Hugging Face (openmmlab/upernet-convnext-large).
 
 ConvNeXt-Large + UPerNet (ADE20K 640×640; AMP):
 ```
@@ -112,5 +112,3 @@ mim download mmsegmentation \
   --dest checkpoints
 ```
 This will drop a matching `.py`config and `.pth` checkpoint in `checkpoints/`.
-
-

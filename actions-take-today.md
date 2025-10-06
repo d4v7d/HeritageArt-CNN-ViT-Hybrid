@@ -9,14 +9,18 @@
 
     # Activate it
     source venv/bin/activate
+3. Created requirements.txt file and executed pip install -r requirements.txt
 
-3. Install Tools for pre-commit
+4. Install Tools for pre-commit
     pip install pre-commit black flake8 isort hydra-core
 
-    pre-commit --version
-    black --version
+5. Created the file .pre-commit-config-yaml, pyproject.toml and .flake8
 
-4. Created requirements.txt file and executed pip install -r requirements.txt
+6. Run:
+    pre-commit install
+    pre-commit run --all-files
+
+7. Created the yaml files in configs
 
 5. Added somestuff to the readme
 
