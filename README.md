@@ -6,7 +6,7 @@ A hybrid CNN-ViT architecture for heritage artifact damage segmentation using th
 
 ## Prerequisites
 
-- **Python**: 3.10+ (tested on 3.10.12)
+- **Python**: 3.10 (tested on 3.10.18)
 - **CUDA**: 11.8+ (for GPU training)
 - **GPU**: NVIDIA GPU with 8GB+ VRAM recommended (RTX 3060 Ti or better)
 

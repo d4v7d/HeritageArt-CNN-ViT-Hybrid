@@ -19,6 +19,9 @@ pandas==2.3.3
 pillow==11.3.0
 opencv-python==4.10.0.84
 
+# --- ARTeFACT ---
+datasets wandb transformers pytorch-lightning==1.9.2 albumentations torchmetrics torchinfo requests gradio
+
 # --- Visualization ---
 matplotlib==3.9.2
 seaborn>=0.12.0
