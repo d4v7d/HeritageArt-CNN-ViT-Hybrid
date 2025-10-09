@@ -100,9 +100,19 @@ This enables automatic code formatting and linting before each commit.
 
 ---
 
-## Download Model Checkpoints (Optional, for demos)
+## Download Model Checkpoints
 
 Use `mim` to download pre-trained models and their configs:
+
+### PSPNet + ResNet50 (ADE20K, demo purposes)
+
+```bash
+mim download mmsegmentation \
+  --config pspnet_r50-d8_4xb4-80k_ade20k-512x512 \
+  --dest ./experiments/mmseg_demos/_mmseg_demo
+```
+
+This downloads a lightweight model for testing MMSegmentation installation.
 
 ### Swin-Base + UPerNet (ADE20K, 512×512)
 
@@ -128,16 +138,6 @@ mim download mmsegmentation \
 - **Finetune**: ADE20K (160k iterations)
 - **Resolution**: 640×640
 - **Training**: Mixed precision (AMP)
-
-### PSPNet + ResNet50 (ADE20K, demo purposes)
-
-```bash
-mim download mmsegmentation \
-  --config pspnet_r50-d8_4xb4-80k_ade20k-512x512 \
-  --dest ./_mmseg_demo
-```
-
-This downloads a lightweight model for testing MMSegmentation installation.
 
 ---
 
