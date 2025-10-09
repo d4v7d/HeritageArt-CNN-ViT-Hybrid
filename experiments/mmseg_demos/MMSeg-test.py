@@ -2,6 +2,8 @@ import mmcv
 import mmengine
 import mmseg
 
+import torch
+
 import os
 from pathlib import Path
 
@@ -38,5 +40,8 @@ cfg = must_exist(EXPTS / "mmseg_demos/_mmseg_demo/pspnet_r50-d8_4xb4-80k_ade20k-
 # experiments/mmseg_demos/_mmseg_demo/pspnet_r50-d8_512x512_80k_ade20k_20200615_014128-15a8b914.pth
 ckpt = must_exist(EXPTS / "mmseg_demos/_mmseg_demo/pspnet_r50-d8_512x512_80k_ade20k_20200615_014128-15a8b914.pth")
 
-init_model(str(cfg), checkpoint=str(ckpt), device="cpu")
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+init_model(str(cfg), checkpoint=str(ckpt), device=device)
+
+print("Using device:", device)
 print("\nMMSeg model loaded OK.")
