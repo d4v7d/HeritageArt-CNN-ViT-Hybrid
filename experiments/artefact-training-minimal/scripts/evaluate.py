@@ -33,11 +33,11 @@ def visualize_prediction(image, mask_gt, mask_pred, save_path=None):
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 12))
     
-    # Denormalize image
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    image_denorm = (image * std[None, :, None, None] + mean[None, :, None, None])[0]
-    image_denorm = np.clip(image_denorm.permute(1, 2, 0).cpu().numpy(), 0, 1)
+    # Denormalize image (move to CPU first)
+    mean = torch.tensor([0.485, 0.456, 0.406], device=image.device)
+    std = torch.tensor([0.229, 0.224, 0.225], device=image.device)
+    image_denorm = image[0] * std[:, None, None] + mean[:, None, None]
+    image_denorm = torch.clip(image_denorm, 0, 1).permute(1, 2, 0).cpu().numpy()
     
     # Convert masks to RGB
     def mask_to_rgb(mask):
@@ -150,7 +150,7 @@ def main():
     
     # Load model
     print(f"\nLoading checkpoint: {args.checkpoint}")
-    checkpoint = torch.load(args.checkpoint, map_location=device)
+    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
     
     model = smp.Unet(
         encoder_name=config['model']['encoder'],

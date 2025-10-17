@@ -25,7 +25,7 @@ def load_model(checkpoint_path, config):
     """Load trained model from checkpoint."""
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     
     model = smp.Unet(
         encoder_name=config['model']['encoder'],

@@ -43,11 +43,17 @@ class DiceFocalLoss(nn.Module):
         """Soft Dice Loss."""
         pred = F.softmax(pred, dim=1)
         
-        # Create one-hot target, excluding ignore_index
-        target_one_hot = F.one_hot(target, num_classes=pred.shape[1]).permute(0, 3, 1, 2).float()
-        
-        # Mask out ignore_index
+        # Mask out ignore_index first
         mask = (target != self.ignore_index).float().unsqueeze(1)
+        
+        # Clamp target to valid range for one-hot encoding
+        target_clamped = target.clone()
+        target_clamped[target == self.ignore_index] = 0  # Temporarily set to 0
+        
+        # Create one-hot target
+        target_one_hot = F.one_hot(target_clamped, num_classes=pred.shape[1]).permute(0, 3, 1, 2).float()
+        
+        # Apply mask to exclude ignore_index pixels
         pred = pred * mask
         target_one_hot = target_one_hot * mask
         
@@ -289,7 +295,7 @@ def main():
     
     if args.resume:
         print(f"Resuming from checkpoint: {args.resume}")
-        checkpoint = torch.load(args.resume)
+        checkpoint = torch.load(args.resume, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])

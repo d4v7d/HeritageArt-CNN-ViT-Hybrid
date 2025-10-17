@@ -10,6 +10,7 @@ model:
 
 data:
   root: "data/artefact"
+  image_size: 512  # Resize all images to this size
   tile_size: 512
   train_val_split: 0.8
   ignore_index: 255

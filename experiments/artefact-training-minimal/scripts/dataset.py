@@ -49,19 +49,19 @@ class ArtefactDataset(Dataset):
         image = np.array(Image.open(self.image_paths[idx]).convert('RGB'))
         mask = np.array(Image.open(self.mask_paths[idx]))
         
-        # Apply transforms
+        # Convert mask to binary BEFORE transforms (work with numpy)
+        if self.binary_mode:
+            # 0 = Clean, 1-15 = Damage → 1, 255 = Ignore (keep as 255)
+            binary_mask = np.zeros_like(mask, dtype=np.uint8)
+            binary_mask[mask > 0] = 1  # All damage classes → 1
+            binary_mask[mask == self.ignore_index] = self.ignore_index  # Keep ignore
+            mask = binary_mask
+        
+        # Apply transforms (this will convert to tensor)
         if self.transform:
             transformed = self.transform(image=image, mask=mask)
             image = transformed['image']
             mask = transformed['mask']
-        
-        # Convert mask to binary if needed
-        if self.binary_mode:
-            # 0 = Clean, 1-15 = Damage → 1, 255 = Ignore (keep as 255)
-            binary_mask = torch.zeros_like(mask)
-            binary_mask[mask > 0] = 1  # All damage classes → 1
-            binary_mask[mask == self.ignore_index] = self.ignore_index  # Keep ignore
-            mask = binary_mask
         
         return image, mask.long()
 
@@ -69,9 +69,13 @@ class ArtefactDataset(Dataset):
 def get_transforms(config: Dict, mode: str = 'train') -> A.Compose:
     """Get augmentation transforms."""
     
+    # Get image size from config (default 512x512)
+    img_size = config['data'].get('image_size', 512)
+    
     if mode == 'train':
         aug_config = config['augmentation']['train']
         transforms = [
+            A.Resize(height=img_size, width=img_size, interpolation=1),  # Add resize first
             A.HorizontalFlip(p=aug_config['horizontal_flip']),
             A.VerticalFlip(p=aug_config['vertical_flip']),
             A.Rotate(limit=aug_config['rotate_limit'], p=0.5),
@@ -85,8 +89,9 @@ def get_transforms(config: Dict, mode: str = 'train') -> A.Compose:
             ToTensorV2()
         ]
     else:
-        # Validation/Test: only normalize
+        # Validation/Test: resize and normalize
         transforms = [
+            A.Resize(height=img_size, width=img_size, interpolation=1),  # Add resize first
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2()
         ]
