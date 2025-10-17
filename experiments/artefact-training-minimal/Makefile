@@ -5,16 +5,18 @@ help:
 	@echo "================================="
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make build        - Build Docker image"
-	@echo "  make setup-data   - Create symlink to POC-1 demo data"
-	@echo "  make train        - Train model (10 epochs)"
-	@echo "  make evaluate     - Evaluate trained model"
-	@echo "  make infer        - Run single image inference demo"
-	@echo "  make clean        - Clean logs and checkpoints"
-	@echo "  make shell        - Open interactive shell in container"
+	@echo "  make build          - Build Docker image"
+	@echo "  make setup-data     - Create symlink to POC-1 demo data"
+	@echo "  make train          - Train model (10 epochs baseline)"
+	@echo "  make train-extended - Train model (50 epochs extended)"
+	@echo "  make train-optimized - Train model (60 epochs optimized)"
+	@echo "  make evaluate       - Evaluate trained model"
+	@echo "  make infer          - Run single image inference demo"
+	@echo "  make clean          - Clean logs and checkpoints"
+	@echo "  make shell          - Open interactive shell in container"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make build && make setup-data && make train"
+	@echo "  make build && make setup-data && make train-extended"
 
 build:
 	@echo "Building Docker image..."
@@ -32,9 +34,19 @@ setup-data:
 	fi
 
 train:
-	@echo "Training model..."
+	@echo "Training model (baseline: 10 epochs)..."
 	cd docker && docker-compose run --rm artefact-training \
 		python3 scripts/train.py --config configs/train_config.yaml
+
+train-extended:
+	@echo "Training model (extended: 50 epochs)..."
+	cd docker && docker-compose run --rm artefact-training \
+		python3 scripts/train.py --config configs/train_config_extended.yaml
+
+train-optimized:
+	@echo "Training model (optimized: 60 epochs)..."
+	cd docker && docker-compose run --rm artefact-training \
+		python3 scripts/train.py --config configs/train_config_optimized.yaml
 
 train-resume:
 	@echo "Resuming training from checkpoint..."

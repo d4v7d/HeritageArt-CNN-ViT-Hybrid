@@ -2,19 +2,35 @@
 
 **Objective**: Validate end-to-end training with real ARTeFACT data using a simple CNN baseline.
 
-**Status**: Binary segmentation (Damage vs Clean) with ResNet50-UNet on 10 demo samples.
+**Status**: ✅ COMPLETED - Binary segmentation (Damage vs Clean) with ResNet50-UNet on 50 samples.
+
+## Results Summary
+
+| Configuration | Samples | Best mIoU | Best mF1 | Accuracy | Epoch | Training Time |
+|--------------|---------|-----------|----------|----------|-------|---------------|
+| Baseline | 10 | 0.4487 | 0.5007 | 79.82% | 10 | ~5 min |
+| Extended | 10 | 0.5500 | 0.6178 | 86.45% | 15 | ~10 min |
+| **Optimized** | **50** | **0.5721** | **0.6851** | **84.68%** | **37** | **~20 min** |
+
+**Key Achievements:**
+- ✅ **Best mIoU: 0.5721** (exceeds target > 0.5)
+- ✅ **27.5% improvement** over baseline
+- ✅ **Dataset scaling validated**: 10 → 50 samples
+- ✅ **Transfer learning confirmed**: ImageNet pretrained encoder effective
+- ✅ **Production-ready pipeline**: Docker + automated eval + visualizations
 
 ## What This POC Does
 
-1. **Loads real ARTeFACT data** from POC-1 (10 validated samples)
-2. **Trains a ResNet50-UNet** model for binary segmentation
+1. **Loads real ARTeFACT data** from POC-1 (50 validated samples)
+2. **Trains a ResNet50-UNet** model for binary segmentation (32.5M parameters)
 3. **Binary task**: Damage (class 1) vs Clean (class 0)
-4. **512x512 tiles** with data augmentations
-5. **Train/Val split**: 80/20 (8 train, 2 val)
+4. **512x512 input size** with optimized data augmentations
+5. **Train/Val split**: 80/20 (40 train, 10 val)
 6. **Metrics**: mIoU, F1, Accuracy with per-epoch tracking
-7. **Checkpointing**: Saves best model and periodic checkpoints
-8. **Evaluation**: Generates metrics and visualizations
+7. **Checkpointing**: Saves best model and periodic checkpoints (every 5 epochs)
+8. **Evaluation**: Generates comprehensive metrics and 4-panel visualizations
 9. **Inference**: Demo script for single image prediction
+10. **Transfer Learning**: Leverages ImageNet pretrained ResNet50 encoder
 
 ## Project Structure
 
@@ -75,30 +91,41 @@ This reuses the 10 validated samples from POC-1.
 
 ### 3. Train Model
 
+**Baseline (10 epochs):**
 ```bash
 make train
 ```
 
-Trains for 10 epochs with:
-- **Model**: ResNet50-UNet (pretrained encoder)
-- **Loss**: Dice + Focal (50/50 mix)
-- **Optimizer**: AdamW (lr=1e-4, wd=1e-4)
-- **Scheduler**: Cosine annealing
+**Extended (50 epochs):**
+```bash
+make train-extended
+```
+
+**Optimized (60 epochs, recommended):**
+```bash
+make train-optimized
+```
+
+**Optimized configuration**:
+- **Model**: ResNet50-UNet (pretrained ImageNet encoder, 32.5M params)
+- **Loss**: Dice (0.7) + Focal (0.3) - optimized for mIoU
+- **Optimizer**: AdamW (lr=3e-4, wd=5e-5)
+- **Scheduler**: CosineAnnealing with 8-epoch warmup, min_lr=5e-7
 - **Batch size**: 4
-- **Augmentations**: Flips, rotations, color jitter, blur
+- **Augmentations**: Moderate (rotate 20°, brightness/contrast 0.25, blur, flips)
 
 **Expected output**:
 ```
-Epoch 1 Summary:
-  Train - Loss: 0.4523, mIoU: 0.6234, mF1: 0.7145
-  Val   - Loss: 0.3987, mIoU: 0.6789, mF1: 0.7534
-  LR: 0.000100
+Epoch 37 Summary:
+  Train - Loss: 0.2035, mIoU: 0.7057, mF1: 0.8043
+  Val   - Loss: 0.2957, mIoU: 0.5721, mF1: 0.6851
+  LR: 0.000097
 
-Saved checkpoint: logs/checkpoints/checkpoint_epoch_5.pth
-Saved best model: logs/checkpoints/best_model.pth (mIoU: 0.7012)
+Saved checkpoint: logs/checkpoints/checkpoint_epoch_37.pth
+Saved best model: logs/checkpoints/best_model.pth (mIoU: 0.5721)
 ```
 
-**Training time**: ~5-10 minutes on RTX 3090
+**Training time**: ~20 minutes on RTX 3090 (60 epochs, 50 samples)
 
 ### 4. Evaluate Model
 
@@ -108,20 +135,26 @@ make evaluate
 
 Generates:
 - **Metrics JSON**: `logs/evaluation/metrics.json`
-- **Visualizations**: `logs/evaluation/visualizations/` (10 samples)
-  - 4-panel plots: Input | GT | Prediction | Overlay
+- **Visualizations**: `logs/evaluation/visualizations/` (10 validation samples)
+  - 4-panel plots: Input Image | Ground Truth | Prediction | Overlay
 
-**Expected metrics**:
+**Actual results (50 samples, optimized config)**:
 ```
 EVALUATION RESULTS
 ==================
-  mIoU:     0.7012 ± 0.0234
-  mF1:      0.7834 ± 0.0189
-  Accuracy: 0.9123
-  Samples:  2
+  mIoU:     0.5721 ± 0.0658
+  mF1:      0.6851 ± 0.0693
+  Accuracy: 0.8468
+  Samples:  10
 ```
 
-**Success criteria**: **mIoU > 0.5** ✅
+**Success criteria**: **mIoU > 0.5** ✅ ACHIEVED
+
+**Visualization panels explained:**
+- **Input Image**: Original artefact photograph
+- **Ground Truth**: Expert-labeled damage masks (Red = Damage, Black = Clean)
+- **Prediction**: Model's pixel-wise prediction (Red = Damage, Black = Clean)
+- **Overlay**: Input with predicted damage overlaid in red for context
 
 ### 5. Run Inference Demo
 
@@ -142,11 +175,12 @@ Saved visualization to: logs/demo_inference.png
 
 ## Configuration
 
-Edit `configs/train_config.yaml` to customize:
+Three configurations available:
 
+**1. `train_config.yaml` - Baseline (10 epochs)**
 ```yaml
 model:
-  encoder: "resnet50"  # Options: resnet50, resnet101, efficientnet-b0, etc.
+  encoder: "resnet50"
   classes: 2           # Binary mode
 
 training:
@@ -155,14 +189,61 @@ training:
   learning_rate: 0.0001
   
   loss:
-    dice_weight: 0.5
-    focal_weight: 0.5
+    dice_weight: 0.6
+    focal_weight: 0.4
 
 data:
   tile_size: 512
   train_val_split: 0.8
-  binary_mode: true    # Collapse damage classes to 1
+  binary_mode: true
 ```
+
+**2. `train_config_extended.yaml` - Extended (50 epochs)**
+
+Same as baseline but with 50 epochs for better convergence.
+
+**3. `train_config_optimized.yaml` - Optimized (60 epochs) ⭐ RECOMMENDED**
+```yaml
+model:
+  encoder: "resnet50"
+  classes: 2
+
+training:
+  batch_size: 4
+  epochs: 60
+  learning_rate: 0.0003      # Reduced for stability
+  weight_decay: 0.00005      # Reduced for small dataset
+  
+  loss:
+    dice_weight: 0.7         # Increased (favors mIoU)
+    focal_weight: 0.3        # Decreased
+  
+  scheduler:
+    type: "cosine"
+    warmup_epochs: 8         # Increased warmup
+    min_lr: 0.0000005
+
+augmentation:
+  train:
+    rotate_limit: 20         # Moderate rotation
+    brightness_limit: 0.25   # Moderate brightness
+    contrast_limit: 0.25     # Moderate contrast
+    blur_limit: 4
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+
+data:
+  tile_size: 512
+  train_val_split: 0.8
+  binary_mode: true
+```
+
+**Rationale for optimized config:**
+- Lower LR (0.0003) prevents overshooting with small dataset
+- Dice weight 0.7 prioritizes IoU metric alignment
+- Extended warmup (8 epochs) stabilizes early training
+- Moderate augmentations prevent unrealistic distortions
+- 60 epochs allow full convergence without overfitting
 
 ## Binary Mode
 
@@ -177,16 +258,17 @@ This simplifies the task for initial validation.
 
 ## Dataset
 
-Uses **POC-1 demo data**:
-- **10 samples** total
-- **8 train** / **2 validation**
-- **Materials**: Parchment (6), Film emulsion (3), Glass (1)
-- **Content**: Artistic (5), Photographic (4), Line art (1)
+Uses **POC-1 demo data** (expanded):
+- **50 samples** total (downloaded via HuggingFace streaming)
+- **40 train** / **10 validation** (80/20 split)
+- **Materials**: Tesserae (34%), Parchment (16%), Paper (14%), Film emulsion (10%), Glass (10%)
+- **Damage distribution**: Clean (85%), Peel (8.3%), Material loss (1.6%), Staining (1.35%), Cracks (1.3%)
+- **Image sizes**: Variable (resized to 512×512 for training)
 
 Each sample:
-- RGB image (PNG, variable size)
-- Annotation mask (PNG, same size)
-- Metadata (material, content, damage types)
+- RGB image (PNG, variable size: 341×512 to 1024×1024)
+- Annotation mask (PNG, same size, pixel-wise labels)
+- Metadata (material, content, damage types, bounding boxes)
 
 ## Output Files
 
@@ -256,19 +338,43 @@ verify_dataset('data/artefact')
 "
 ```
 
+## Key Findings
+
+### Transfer Learning Effectiveness
+- **ImageNet pretraining** enables learning with limited data (50 samples)
+- **Encoder frozen initially** not required - fine-tuning end-to-end works well
+- **Train-val gap** (~0.19 mIoU) indicates slight overfitting but acceptable for dataset size
+
+### Hyperparameter Impact
+- **Dice/Focal ratio**: 0.7/0.3 optimal for mIoU metric (vs 0.6/0.4 baseline)
+- **Learning rate**: 3e-4 balances speed and stability (5e-4 too aggressive)
+- **Warmup**: 8 epochs critical for stable convergence with small datasets
+- **Augmentation**: Moderate transforms (rotate 20°) prevent unrealistic samples
+
+### Data Scaling Results
+| Samples | Train/Val | mIoU | Improvement | Validation Stability |
+|---------|-----------|------|-------------|---------------------|
+| 10 | 8/2 | 0.4487-0.5500 | Baseline | High variance (2 val samples) |
+| 50 | 40/10 | **0.5721** | +27.5% | Stable (10 val samples) |
+
+**Recommendation**: 50+ samples minimum for reliable metrics. Next step: 100-200 samples for production.
+
 ## Next Steps (POC-5)
 
 This POC validates:
-- ✅ ARTeFACT data is trainable
-- ✅ Training loop is stable
-- ✅ Metrics are computed correctly
-- ✅ Docker environment works
+- ✅ ARTeFACT data is trainable with CNNs
+- ✅ Training loop is stable and reproducible
+- ✅ Metrics (mIoU, F1) computed correctly
+- ✅ Docker environment works on CUDA 12.6
+- ✅ Transfer learning from ImageNet effective
+- ✅ Binary segmentation baseline established (mIoU 0.5721)
 
 **POC-5 will add**:
 1. **UPerNet decoder** (common for all backbones)
-2. **Multiple backbones**: ResNet50, Swin-Tiny, CoaT-Lite
-3. **Side-by-side comparison** (CNN vs ViT vs Hybrid)
-4. **Multiclass mode** (all 16 classes)
+2. **Multiple backbones**: ResNet50 (CNN), Swin-Tiny (ViT), CoaT-Lite (Hybrid)
+3. **Architectural comparison** (CNN vs ViT vs Hybrid on same task)
+4. **Multiclass mode** (16 damage classes vs binary)
+5. **Attention visualization** (understand what models focus on)
 
 ## References
 

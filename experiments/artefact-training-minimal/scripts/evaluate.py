@@ -109,7 +109,7 @@ def evaluate_model(model, loader, device, output_dir, max_visualizations=10):
             if viz_count < max_visualizations:
                 for i in range(min(images.size(0), max_visualizations - viz_count)):
                     viz_path = viz_dir / f'sample_{batch_idx}_{i}.png'
-                    visualize_prediction(images, masks[i], preds[i], viz_path)
+                    visualize_prediction(images[i:i+1], masks[i], preds[i], viz_path)
                     viz_count += 1
                     
                     if viz_count >= max_visualizations:

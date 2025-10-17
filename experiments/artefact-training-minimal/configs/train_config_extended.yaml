@@ -1,0 +1,81 @@
+# POC-4: Extended Training Configuration
+# Binary segmentation: Damage (1) vs Clean (0)
+# Goal: Improve metrics with longer training and better hyperparameters
+
+model:
+  name: "resnet50_unet"
+  encoder: "resnet50"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 2  # Binary: damage vs clean
+
+data:
+  root: "data/artefact"
+  image_size: 512  # Resize all images to this size
+  tile_size: 512
+  train_val_split: 0.8
+  ignore_index: 255
+  
+  # Class mapping: 0=Clean, 1-15=Damage, 255=Ignore
+  binary_mode: true  # Collapse all damage classes to 1
+
+training:
+  batch_size: 4
+  epochs: 50  # Increased from 10 to 50 epochs
+  learning_rate: 0.0005  # Slightly higher initial LR
+  weight_decay: 0.0001
+  
+  # Loss function
+  loss:
+    type: "dice_focal"
+    dice_weight: 0.6  # More weight on Dice (IoU-friendly)
+    focal_weight: 0.4
+    focal_alpha: 0.25
+    focal_gamma: 2.0
+  
+  # Optimizer
+  optimizer: "adamw"
+  
+  # Scheduler
+  scheduler:
+    type: "cosine"
+    warmup_epochs: 5  # Longer warmup
+    min_lr: 0.0000001  # Lower min LR
+  
+  # Checkpointing
+  save_freq: 10  # Save every 10 epochs
+  best_metric: "val_miou"  # Metric to track for best model
+
+augmentation:
+  train:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotate_limit: 30  # Increased rotation
+    brightness_limit: 0.3  # More color variation
+    contrast_limit: 0.3
+    blur_limit: 5  # More blur
+  
+  val:
+    # No augmentation for validation
+    pass
+
+evaluation:
+  metrics:
+    - "miou"
+    - "f1"
+    - "precision"
+    - "recall"
+    - "accuracy"
+  
+  visualize: true
+  max_visualizations: 10
+
+paths:
+  checkpoints: "logs/checkpoints"
+  logs: "logs/training"
+  visualizations: "logs/visualizations"
+  metrics: "logs/metrics"
+
+seed: 42
+device: "cuda"
+num_workers: 4
