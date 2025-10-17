@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  artefact-repo-analysis:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: artefact-repo-analysis:latest
+    container_name: artefact-repo-analysis
+    
+    # Resource limits
+    mem_limit: 16g
+    memswap_limit: 16g
+    
+    # GPU support (optional, uncomment if needed)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    
+    # Mount local directories for persistence
+    volumes:
+      - ../artefact_repo:/workspace/artefact_repo
+      - ../data:/workspace/data
+      - ../scripts:/workspace/scripts
+    
+    # Working directory
+    working_dir: /workspace
+    
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true
+    
+    # Override default command
+    # command: python3 process_parquet.py --help
+
+# Example usage:
+# 
+# 1. Build image:
+#    docker-compose build
+#
+# 2. Clone repository (one-time):
+#    docker-compose run --rm artefact-repo-analysis bash -c "cd artefact_repo && git clone https://huggingface.co/datasets/danielaivanova/damaged-media ."
+#
+# 3. Download parquet files:
+#    docker-compose run --rm artefact-repo-analysis bash -c "cd artefact_repo && git lfs pull --include='data/train-00000-of-00028.parquet'"
+#
+# 4. Process parquet files:
+#    docker-compose run --rm artefact-repo-analysis python3 process_parquet.py \
+#      --input artefact_repo/data/train-00000-of-00028.parquet \
+#      --output ./data/processed \
+#      --max-image-size 512
+#
+# 5. Inspect parquet structure:
+#    docker-compose run --rm artefact-repo-analysis python3 inspect_parquet.py artefact_repo/data/train-00000-of-00028.parquet
+#
+# 6. Visualize samples:
+#    docker-compose run --rm artefact-repo-analysis python3 visualize_samples.py \
+#      --metadata ./data/processed/metadata.csv \
+#      --output ./data/visualizations

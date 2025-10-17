@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  artefact-data-obtention:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: artefact-data-obtention:latest
+    container_name: artefact-data-obtention
+    
+    # Resource limits - Requires 16GB+ RAM for full dataset
+    mem_limit: 16g
+    memswap_limit: 16g
+    
+    # Mount local data directory for persistence
+    volumes:
+      - ../data:/workspace/data
+      - ../scripts:/workspace/scripts
+    
+    # Working directory
+    working_dir: /workspace
+    
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true
+
+# Example usage:
+# 
+# 1. Build image:
+#    docker-compose build
+#
+# 2. Download small subset (5 samples):
+#    docker-compose run --rm artefact-data-obtention python3 download_artefact.py \
+#      --output data/test_docker \
+#      --max-samples 5
+#
+# 3. Download with visualizations:
+#    docker-compose run --rm artefact-data-obtention python3 download_artefact.py \
+#      --output data/with_viz \
+#      --max-samples 10
+#
+# 4. Download ALL samples (417 expected, requires 16GB+ RAM):
+#    docker-compose run --rm artefact-data-obtention python3 download_artefact.py \
+#      --output data/full_dataset \
+#      --all \
+#      --no-viz
+#
+# Note: One sample (~133M pixels) will be skipped due to extreme size

@@ -2,6 +2,26 @@
 
 A hybrid CNN-ViT architecture for heritage artifact damage segmentation using the ARTeFACT dataset.
 
+## 📁 Repository Structure
+
+```
+HeritageArt-CNN-ViT-Hybrid/
+├── pipeline/                    # Main training pipeline
+│   ├── src/                    # Source code (models, datasets, training)
+│   ├── configs/                # Configuration files
+│   ├── tests/                  # Unit tests
+│   ├── requirements.txt        # Python dependencies
+│   └── pyproject.toml         # Project metadata
+│
+├── experiments/                 # Research experiments and POCs
+│   ├── poc-art-damage/        # Complete training pipeline POC
+│   ├── artefact-repo-analysis/ # Git LFS + Parquet processing
+│   ├── artefact-data-obtention/ # HuggingFace datasets streaming
+│   └── ARTEFACT_EXPERIMENTS.md # Experiments documentation
+│
+└── documentation/              # Project documentation
+```
+
 ---
 
 ## Prerequisites

@@ -1,0 +1,13 @@
+# UPerNet Swin-Base via HF Transformers
+# Note: PoC reduces ADE20K 150→16 via 1x1 projection; not semantically aligned.
+model:
+  name: upernet_swin_base
+
+# include common
+common:
+  tile: 512
+  overlap: 0.5
+  ignore_index: 255
+  num_classes: 16
+  mean: [0.485, 0.456, 0.406]
+  std:  [0.229, 0.224, 0.225]

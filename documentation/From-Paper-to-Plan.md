@@ -33,7 +33,7 @@ We will build a **semantic-segmentation** pipeline that can be instantiated with
 
 1. **A modern CNN** (ConvNeXt)
 2. **Hierarchical ViT** (Swin Transformer)
-3. **Hybrid CNN–ViT** (CoaT or U-Conformer-style architecture that fuses local convolutional bias with global self-attention)
+3. **Hybrid CNN–ViT** (CoaT architecture that fuses local convolutional bias with global self-attention)
 
 **Decoder**: One **state-of-the-art head** (**UPerNet**) used **across all backbones** for fairness.
 

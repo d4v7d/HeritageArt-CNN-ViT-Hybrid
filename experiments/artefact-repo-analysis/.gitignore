@@ -1,0 +1,25 @@
+# Cloned repository (large, should be downloaded locally)
+artefact_repo/
+
+# Processed data
+data/
+
+# Logs
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment (not needed with Docker)
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
