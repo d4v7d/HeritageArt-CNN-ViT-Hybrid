@@ -17,6 +17,7 @@ data/
 *.pth
 *.ckpt
 wandb/
+_mmseg_demo/
 
 # Experiments outputs (pero SÍ commitear los scripts)
 experiments/**/*.jpg
