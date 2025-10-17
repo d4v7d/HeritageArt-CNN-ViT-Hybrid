@@ -18,6 +18,7 @@ artefact-data-obtention/
 │   └── download_artefact.py  # Main download script
 ├── Makefile               # Convenience commands (make help)
 └── data/                  # Downloaded datasets (generated)
+    └── demo/              # Demo dataset (10 samples)
 ```
 
 ## Purpose
@@ -84,7 +85,7 @@ artefact-data-obtention/
 ├── Makefile                # Convenience commands
 ├── .gitignore             # Git ignore rules
 └── data/                  # Output directory (generated)
-    └── test_docker/       # Sample output (10 test samples)
+    └── demo/              # Demo dataset (10 samples)
 ```
 
 ### download_artefact.py
@@ -116,7 +117,11 @@ data/artefact_*/
 
 ## Test Dataset
 
-The `data/test_docker/` directory contains a test run of 10 samples demonstrating the output structure.
+The `data/demo/` directory contains a clean end-to-end test run of 10 samples demonstrating the complete output structure:
+- 10 samples successfully processed (1 skipped due to 133M pixel size)
+- Materials: Parchment (6), Film emulsion (3), Glass (1)
+- Content: Artistic (5), Photographic (4), Line art (1)
+- Complete visualizations and statistics included
 
 ## Known Limitations
 

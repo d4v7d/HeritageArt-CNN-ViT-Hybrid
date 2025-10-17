@@ -24,6 +24,7 @@ artefact-repo-analysis/
 ├── artefact_repo/         # Cloned HuggingFace repo (git-lfs)
 │   └── data/              # 28 parquet files (~377MB each)
 └── data/                  # Processed output (generated)
+    └── demo/              # Demo dataset (10 samples)
 ```
 
 ## Quick Start
@@ -122,15 +123,16 @@ python visualize_samples.py
 ## Processing Results
 
 ### Completed
-- 1 parquet file downloaded (train-00000-of-00028.parquet)
-- 15/15 samples processed successfully
+- 1 parquet file processed (train-00000-of-00028.parquet)
+- 10/10 samples processed successfully in clean end-to-end test
 - Includes 1 extremely large image (133M pixels) - handled without crash
-- Output in `data/processed_all/`
+- Output in `data/demo/`
 
-### Dataset Sample (first 15 images)
-- **Materials**: Parchment (6), Paper (5), Film emulsion (3), Glass (1)
-- **Content**: Artistic (7), Photographic (6), Line art (2)
+### Dataset Sample (demo - 10 images)
+- **Materials**: Parchment (5), Film emulsion (3), Glass (1), Paper (1)
+- **Content**: Artistic (5), Photographic (4), Line art (1)
 - **Damage types**: Discolourations, peels, tears, dirt, hairs, scratches, dust, folds
+- **Size**: 14MB total
 
 ## Notes
 
