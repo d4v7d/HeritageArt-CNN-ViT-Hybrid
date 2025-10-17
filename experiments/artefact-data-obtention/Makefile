@@ -30,7 +30,7 @@ clean-all: clean-data ## Remove all data and Docker image
 
 quickstart: build download-small ## Build and download small test (10 samples)
 	@echo ""
-	@echo "✅ Quickstart complete! Data available in ./data/test_small"
+	@echo " Quickstart complete! Data available in ./data/test_small"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  make download-medium  - Download 50 samples"

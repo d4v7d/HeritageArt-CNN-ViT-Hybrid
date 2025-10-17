@@ -2,7 +2,7 @@
 
 A hybrid CNN-ViT architecture for heritage artifact damage segmentation using the ARTeFACT dataset.
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 HeritageArt-CNN-ViT-Hybrid/
@@ -89,7 +89,7 @@ Device count: 1
 Device name: NVIDIA GeForce RTX 4060
 ```
 
-✅ Verify:
+ Verify:
 - `CUDA available: True`
 - Your GPU name appears correctly
 

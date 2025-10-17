@@ -17,7 +17,7 @@ try:
     from PIL import Image
     from tqdm import tqdm
 except ImportError as e:
-    print(f"❌ Missing dependency: {e}")
+    print(f"ERROR: Missing dependency: {e}")
     print("\nInstall with:")
     print("  pip install pyarrow pillow tqdm")
     sys.exit(1)
@@ -30,7 +30,7 @@ def bytes_to_image(image_dict: dict) -> Optional[Image.Image]:
             return Image.open(io.BytesIO(image_dict['bytes']))
         return None
     except Exception as e:
-        print(f"  ⚠️  Failed to decode image: {e}")
+        print(f"  WARNING:  Failed to decode image: {e}")
         return None
 
 
@@ -116,7 +116,7 @@ def process_parquet_file(
             ann_rgb = bytes_to_image(row['annotation_rgb'])
             
             if img is None or ann is None or ann_rgb is None:
-                print(f"  ⚠️  Sample {sample_id}: Missing image data")
+                print(f"  WARNING:  Sample {sample_id}: Missing image data")
                 stats['errors'] += 1
                 continue
             
@@ -156,7 +156,7 @@ def process_parquet_file(
             stats['processed'] += 1
             
         except Exception as e:
-            print(f"  ❌ Error processing {sample_id}: {e}")
+            print(f"  ERROR: Error processing {sample_id}: {e}")
             stats['errors'] += 1
             continue
     
@@ -216,11 +216,11 @@ def main():
     elif input_path.is_dir():
         parquet_files = list(input_path.glob("*.parquet"))
     else:
-        print(f"❌ Invalid input: {input_path}")
+        print(f"ERROR: Invalid input: {input_path}")
         sys.exit(1)
     
     if not parquet_files:
-        print(f"❌ No parquet files found matching: {args.input}")
+        print(f"ERROR: No parquet files found matching: {args.input}")
         sys.exit(1)
     
     print("\n" + "="*80)
@@ -276,14 +276,14 @@ def main():
     
     # Print summary
     print("\n" + "="*80)
-    print("✅ PROCESSING COMPLETE")
+    print(" PROCESSING COMPLETE")
     print("="*80)
-    print(f"\n📊 Summary:")
+    print(f"\n Summary:")
     print(f"  Processed: {all_stats['total_processed']}")
     print(f"  Skipped: {all_stats['total_skipped']}")
     print(f"  Errors: {all_stats['total_errors']}")
     
-    print(f"\n📁 Output:")
+    print(f"\n Output:")
     print(f"  Images: {output_dir}/images/")
     print(f"  Annotations: {output_dir}/annotations/")
     print(f"  RGB Annotations: {output_dir}/annotations_rgb/")

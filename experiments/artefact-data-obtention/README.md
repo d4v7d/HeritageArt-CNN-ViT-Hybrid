@@ -2,9 +2,9 @@
 
 **Code example** demonstrating how to download ARTeFACT using HuggingFace `datasets` library with streaming mode.
 
-⚠️ **Note**: This approach has memory limitations with very large images.
+**Note**: This approach has memory limitations with very large images.
 
-## � Project Structure
+## Project Structure
 
 ```
 artefact-data-obtention/
@@ -17,8 +17,6 @@ artefact-data-obtention/
 ├── scripts/               # Python scripts
 │   └── download_artefact.py  # Main download script
 ├── Makefile               # Convenience commands (make help)
-├── setup.sh               # venv setup script
-├── venv/                  # Python virtual environment (optional)
 └── data/                  # Downloaded datasets (generated)
 ```
 
@@ -28,16 +26,16 @@ Provides clean, documented code showing how to integrate ARTeFACT with HuggingFa
 
 ## Approach: HuggingFace Datasets Library
 
-✅ **Streaming mode** - Downloads samples incrementally without loading entire dataset  
-✅ **Automatic image resizing** - Reduces memory footprint (max 512-1024px)  
-✅ **Progress tracking** - Real-time progress with tqdm  
-✅ **Rich metadata** - Exports metadata, statistics, and visualizations  
-✅ **Docker ready** - Fully containerized, no venv conflicts  
-✅ **16GB RAM** - Successfully processes 417/418 samples (99.8%)
+- **Streaming mode** - Downloads samples incrementally without loading entire dataset  
+- **Automatic image resizing** - Reduces memory footprint (max 512-1024px)  
+- **Progress tracking** - Real-time progress with tqdm  
+- **Rich metadata** - Exports metadata, statistics, and visualizations  
+- **Docker containerized** - Fully isolated environment  
+- **16GB RAM tested** - Successfully processes 417/418 samples (99.8%)
 
 ## Quick Start
 
-### Option 1: Docker (Recommended - Isolated)
+### Using Docker (Recommended)
 
 ```bash
 # Build image (first time only)
@@ -59,68 +57,50 @@ docker-compose run --rm artefact-data-obtention python3 scripts/download_artefac
   --max-samples 10
 ```
 
-### Option 2: Python venv
-
-#### 1. Setup Environment (First Time Only)
+### Custom Commands
 
 ```bash
-./setup.sh
-```
+# Download specific number of samples
+docker-compose run --rm artefact-data-obtention python3 scripts/download_artefact.py \
+  --output data/custom \
+  --max-samples 100
 
-This creates a venv and installs all dependencies.
-
-#### 2. Activate Environment
-
-```bash
-source venv/bin/activate
-```
-
-#### 3. Download Samples
-
-```bash
-# Download 10 samples (quick test)
-python scripts/download_artefact.py --max-samples 10 --output ./data/test
-
-# Download 50 samples (recommended for POC)
-python scripts/download_artefact.py --max-samples 50 --output ./data/poc
-
-# Download 100+ samples (for real training)
-python scripts/download_artefact.py --max-samples 100 --output ./data/train
-
-# Download ALL samples (~420 images, requires 16GB RAM)
-python scripts/download_artefact.py --all --output ./data/full
-```
-python download_artefact.py --max-samples 100 --output ./data/artefact_train
-
-# Download ALL samples (~420 images, requires 16GB RAM)
-python download_artefact.py --all --output ./data/artefact_full
+# Download all samples
+docker-compose run --rm artefact-data-obtention python3 scripts/download_artefact.py \
+  --output data/full \
+  --all
 ```
 
 ## Files
 
 ```
 artefact-data-obtention/
-├── download_artefact.py      # Main script with streaming mode
-├── requirements.txt          # Python dependencies
-├── setup.sh                 # Setup script (creates venv)
-├── .gitignore              # Git ignore rules
-└── data/
-    └── artefact_venv_test/  # Sample output (5 successful downloads)
+├── docker/
+│   ├── Dockerfile           # Container definition
+│   ├── docker-compose.yml   # Docker compose config
+│   └── requirements.txt     # Python dependencies
+├── scripts/
+│   └── download_artefact.py # Main script with streaming mode
+├── Makefile                # Convenience commands
+├── .gitignore             # Git ignore rules
+└── data/                  # Output directory (generated)
+    └── test_docker/       # Sample output (10 test samples)
 ```
 
 ### download_artefact.py
 
 **Features:**
-- ✅ Streaming download (incremental processing)
-- ✅ Automatic image resizing (max 512px)
-- ✅ Progress tracking with tqdm
-- ✅ Metadata and statistics export
-- ✅ Sample visualizations (4-panel)
+- Streaming download (incremental processing)
+- Automatic image resizing (max 512px)
+- Progress tracking with tqdm
+- Metadata and statistics export
+- Sample visualizations (4-panel)
+- Docker containerized for isolation
 
 **Limitations:**
-- ⚠️ Crashes on extremely large images (>50M pixels)
-- ⚠️ Successfully processes ~5-9 samples before hitting memory limits
-- ⚠️ Not suitable for full dataset download from scratch
+- Crashes on extremely large images (>50M pixels)
+- Successfully processes 417/418 samples with 16GB RAM
+- Memory constraints with very large images
 
 ## Output Structure
 
@@ -134,9 +114,9 @@ data/artefact_*/
 └── statistics.json      # Dataset statistics (materials, contents, class distribution)
 ```
 
-## Example: Sample Dataset
+## Test Dataset
 
-The `data/artefact_venv_test/` directory contains a successful download of 5 samples demonstrating the output structure.
+The `data/test_docker/` directory contains a test run of 10 samples demonstrating the output structure.
 
 ## Known Limitations
 
@@ -145,44 +125,52 @@ The `data/artefact_venv_test/` directory contains a successful download of 5 sam
 **Problem:** The HuggingFace `datasets` library decodes images fully in memory when accessing `sample['image']`, BEFORE any resizing can occur. The ARTeFACT dataset contains extremely large images (up to 7680×4877 = 37M pixels, some even >100M pixels) that can exceed available system memory.
 
 **What happens:**
-- ✅ Small-medium images (< 20M pixels): Process successfully
-- ⚠️ Large images (20-50M pixels): May work depending on available RAM
-- ❌ Huge images (> 50M pixels): Crash WSL/system (OOM)
+- Small-medium images (< 20M pixels): Process successfully
+- Large images (20-50M pixels): May work depending on available RAM
+- Huge images (> 50M pixels): Crash WSL/system (OOM)
 
 **Solutions attempted:**
-1. ✅ Streaming mode (`streaming=True`) - Still decodes individual images fully
-2. ✅ PIL thumbnail/resize - Called AFTER image already loaded in memory
-3. ✅ Explicit memory cleanup - Too late, memory already consumed
-4. ✅ Running outside Docker - Same fundamental issue
-5. ❌ PIL draft mode - Not supported by datasets library's image loader
+1. Streaming mode (`streaming=True`) - Still decodes individual images fully
+2. PIL thumbnail/resize - Called AFTER image already loaded in memory
+3. Explicit memory cleanup - Too late, memory already consumed
+4. Running outside Docker - Same fundamental issue
+5. PIL draft mode - Not supported by datasets library's image loader
 
 **Current status:** 
 - **Suitable for pipeline integration** where data is pre-processed
-- **Successfully downloads 5-9 samples** before hitting problematic large images
-- **NOT suitable for full dataset download** from scratch
+- **Successfully downloads 417/418 samples** with 16GB RAM in Docker
+- **Production-ready for training pipelines** when using pre-processed data
 
 **Recommendation:** 
-Use `../artefact-repo-analysis/` (git-lfs + parquet processing) for full dataset obtention. This approach gives you:
-- ✅ Full control over image decoding
-- ✅ Can check size BEFORE loading
-- ✅ Memory-efficient processing
-- ✅ Successfully processed 5 samples without issues
+Use `../artefact-repo-analysis/` (git-lfs + parquet processing) for initial full dataset obtention. This approach gives you:
+- Full control over image decoding
+- Can check size BEFORE loading
+- Memory-efficient processing
+- Handles extremely large images
 
-**Use this approach ONLY IF:**
-- Data is already pre-processed and available
-- You need HuggingFace ecosystem integration
-- Working with subset of smaller images
-- For pipeline training code examples
+**Use this Docker approach when:**
+- Integrating with HuggingFace ecosystem
+- Working with pre-processed datasets
+- Building training pipeline examples
+- Need automatic streaming capabilities
 
-## ⚠️ For Production Use
+## Recommended Workflow
 
-**This approach is for learning/examples only.** For actual dataset obtention:
+**For complete dataset obtention:**
 
-👉 **Use [`../artefact-repo-analysis/`](../artefact-repo-analysis/)** 
-- ✅ Handles all images including 133M pixel files
-- ✅ Memory efficient
-- ✅ Production-ready
-- ✅ Successfully processed 15/15 samples from first parquet file
+**Use [`../artefact-repo-analysis/`](../artefact-repo-analysis/)** 
+- Handles all images including 133M pixel files
+- Memory efficient parquet processing
+- Production-ready with Docker
+- Git-LFS repository management
+
+**For training pipeline integration:**
+
+**Use this approach (artefact-data-obtention)** 
+- HuggingFace datasets integration
+- Streaming capabilities
+- 417/418 samples success rate
+- Docker containerized
 
 ## Dataset Structure
 

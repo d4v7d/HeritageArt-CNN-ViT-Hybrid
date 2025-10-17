@@ -60,7 +60,7 @@ clean-all: clean-data clean-repo ## Remove everything (data + repo)
 # Quick start workflow
 quickstart: build clone download process ## Complete workflow: build, clone, download, and process first file
 	@echo ""
-	@echo "✅ Quickstart complete! Data available in ./data/processed"
+	@echo " Quickstart complete! Data available in ./data/processed"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  make visualize    - Generate sample visualizations"

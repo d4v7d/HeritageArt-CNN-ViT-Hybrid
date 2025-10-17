@@ -6,7 +6,7 @@ ARTeFACT Data Obtention - HuggingFace Streaming Approach
 Code example demonstrating how to download ARTeFACT dataset using HuggingFace 
 datasets library with streaming mode.
 
-⚠️ LIMITATION: This approach crashes on extremely large images (>50M pixels).
+WARNING: LIMITATION: This approach crashes on extremely large images (>50M pixels).
    Successfully processes ~5-9 samples before hitting memory limits.
    For production data obtention, use ../artefact-repo-analysis/
 
@@ -185,7 +185,7 @@ def save_artefact_to_disk(dataset, output_dir: Path, max_samples: int = None, cr
                     
                     # Skip if absurdly large (>50M pixels = likely causes crash)
                     if orig_width * orig_height > 50_000_000:
-                        print(f"\n⚠️  Skipping sample {sample_id}: Image too large ({orig_width}x{orig_height} = {orig_width*orig_height:,} pixels)")
+                        print(f"\nWARNING:  Skipping sample {sample_id}: Image too large ({orig_width}x{orig_height} = {orig_width*orig_height:,} pixels)")
                         skipped_count += 1
                         continue
                     
@@ -193,7 +193,7 @@ def save_artefact_to_disk(dataset, output_dir: Path, max_samples: int = None, cr
                     img_pil.thumbnail((max_size, max_size), Image.LANCZOS)
                     
                 except Exception as e:
-                    print(f"\n⚠️  Skipping sample {sample_id}: Failed to load image ({e})")
+                    print(f"\nWARNING:  Skipping sample {sample_id}: Failed to load image ({e})")
                     skipped_count += 1
                     continue
                 
@@ -201,7 +201,7 @@ def save_artefact_to_disk(dataset, output_dir: Path, max_samples: int = None, cr
                     ann_pil = sample['annotation']
                     ann_pil.thumbnail((max_size, max_size), Image.NEAREST)
                 except Exception as e:
-                    print(f"\n⚠️  Skipping sample {sample_id}: Failed to load annotation ({e})")
+                    print(f"\nWARNING:  Skipping sample {sample_id}: Failed to load annotation ({e})")
                     skipped_count += 1
                     continue
                 
@@ -209,7 +209,7 @@ def save_artefact_to_disk(dataset, output_dir: Path, max_samples: int = None, cr
                     ann_rgb_pil = sample['annotation_rgb']
                     ann_rgb_pil.thumbnail((max_size, max_size), Image.NEAREST)
                 except Exception as e:
-                    print(f"\n⚠️  Skipping sample {sample_id}: Failed to load RGB annotation ({e})")
+                    print(f"\nWARNING:  Skipping sample {sample_id}: Failed to load RGB annotation ({e})")
                     skipped_count += 1
                     continue
                 
@@ -352,7 +352,7 @@ def print_statistics(statistics: Dict, df: pd.DataFrame):
     print("DATASET STATISTICS")
     print("="*80)
     
-    print(f"\n📊 General Information:")
+    print(f"\n General Information:")
     print(f"  Total samples: {statistics['total_samples']}")
     print(f"  Samples with damage annotations: {statistics['samples_with_annotations']}")
     print(f"  Samples without damage: {statistics['total_samples'] - statistics['samples_with_annotations']}")
@@ -413,13 +413,13 @@ def validate_dataset(output_dir: Path, df: pd.DataFrame):
             errors.append(f"Missing RGB annotation: {row['annotation_rgb_path']}")
     
     if errors:
-        print(f"\n⚠️  Found {len(errors)} errors:")
+        print(f"\nWARNING:  Found {len(errors)} errors:")
         for error in errors[:10]:  # Show first 10
             print(f"  - {error}")
         if len(errors) > 10:
             print(f"  ... and {len(errors) - 10} more errors")
     else:
-        print("\n✅ All files validated successfully!")
+        print("\n All files validated successfully!")
     
     return len(errors) == 0
 
@@ -562,10 +562,10 @@ Examples:
     
     # Final summary
     print("\n" + "="*80)
-    print("✅ POC COMPLETED SUCCESSFULLY")
+    print(" POC COMPLETED SUCCESSFULLY")
     print("="*80)
-    print(f"\n📁 All data saved to: {output_dir}")
-    print(f"\n📊 Files generated:")
+    print(f"\n All data saved to: {output_dir}")
+    print(f"\n Files generated:")
     print(f"  - metadata.csv: {len(df)} rows")
     print(f"  - statistics.json: Detailed dataset statistics")
     print(f"  - images/: {len(df)} original images")
@@ -573,7 +573,7 @@ Examples:
     print(f"  - annotations_rgb/: {len(df)} colored annotation maps")
     if not args.no_viz:
         print(f"  - visualizations/: Sample visualizations + summary")
-    print(f"\n✅ Dataset ready for use!")
+    print(f"\n Dataset ready for use!")
     print()
 
 

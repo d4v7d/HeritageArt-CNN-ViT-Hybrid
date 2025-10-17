@@ -72,7 +72,7 @@ def print_per_image_details(results_dir: Path, model_name: str, top_n: int = 5):
     images = data['per_image_metrics']
     images_sorted = sorted(images, key=lambda x: x['mIoU'], reverse=True)
     
-    print(f"\n📊 Top {top_n} images by mIoU:")
+    print(f"\n Top {top_n} images by mIoU:")
     print(f"{'Image ID':<15} {'mIoU':<12} {'mF1':<12}")
     print("-" * 40)
     for img in images_sorted[:top_n]:
@@ -91,7 +91,7 @@ def print_file_structure(results_dir: Path):
     print("GENERATED FILES")
     print(f"{'='*80}")
     
-    print(f"\n📁 Results directory: {results_dir}")
+    print(f"\n Results directory: {results_dir}")
     
     checkpoints = results_dir / 'checkpoints'
     if checkpoints.exists():
@@ -136,7 +136,7 @@ def main():
     # Print file structure
     print_file_structure(results_dir)
     
-    print(f"\n\n✅ Complete results available at: {results_dir}")
+    print(f"\n\n Complete results available at: {results_dir}")
     print("Check the visualization PNGs for detailed segmentation results!")
 
 

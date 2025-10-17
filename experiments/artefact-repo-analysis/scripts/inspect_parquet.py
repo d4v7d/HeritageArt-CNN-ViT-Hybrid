@@ -12,12 +12,12 @@ try:
     HAS_PYARROW = True
 except ImportError:
     HAS_PYARROW = False
-    print("⚠️  pyarrow not installed, will use pandas only")
+    print("WARNING: pyarrow not installed, will use pandas only")
 
 parquet_file = Path("artefact_repo/data/train-00000-of-00028.parquet")
 
 if not parquet_file.exists():
-    print(f"❌ File not found: {parquet_file}")
+    print(f"ERROR: File not found: {parquet_file}")
     sys.exit(1)
 
 print("="*80)
@@ -31,17 +31,17 @@ if HAS_PYARROW:
     print("Reading with PyArrow...")
     table = pq.read_table(parquet_file)
     
-    print("\n📋 Schema:")
+    print("\nSchema:")
     print(table.schema)
     
-    print(f"\n📊 Rows: {table.num_rows}")
-    print(f"📊 Columns: {table.num_columns}")
+    print(f"\nRows: {table.num_rows}")
+    print(f"Columns: {table.num_columns}")
     
-    print("\n📝 Column Names:")
+    print("\nColumn Names:")
     for col in table.column_names:
         print(f"  - {col}")
     
-    print("\n🔍 First row sample (without image data):")
+    print("\nFirst row sample (without image data):")
     df = table.to_pandas()
     first_row = df.iloc[0]
     for col in df.columns:
@@ -67,13 +67,13 @@ else:
     print("Reading with pandas...")
     df = pd.read_parquet(parquet_file)
     
-    print(f"\n📊 Shape: {df.shape}")
-    print(f"\n📝 Columns: {list(df.columns)}")
-    print(f"\n🔍 Info:")
+    print(f"\nShape: {df.shape}")
+    print(f"\nColumns: {list(df.columns)}")
+    print(f"\nInfo:")
     print(df.info())
-    print(f"\n📋 First row (excluding images):")
+    print(f"\nFirst row (excluding images):")
     print(df.drop(columns=['image', 'annotation', 'annotation_rgb'], errors='ignore').head(1))
 
 print("\n" + "="*80)
-print("✅ INSPECTION COMPLETE")
+print("INSPECTION COMPLETE")
 print("="*80)

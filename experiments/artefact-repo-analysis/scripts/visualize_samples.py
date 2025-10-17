@@ -17,7 +17,7 @@ except ImportError as e:
 # Read metadata
 metadata_path = Path("data/processed/metadata.csv")
 if not metadata_path.exists():
-    print("❌ Metadata not found. Run process_parquet.py first.")
+    print("ERROR: Metadata not found. Run process_parquet.py first.")
     sys.exit(1)
 
 df = pd.read_csv(metadata_path)
@@ -84,5 +84,5 @@ for idx in range(num_samples):
     
     print(f"  ✓ Saved visualization to {output_path / viz_filename}")
 
-print("\n✅ Visualizations complete!")
-print(f"📁 See: data/processed/visualizations/")
+print("\n Visualizations complete!")
+print(f" See: data/processed/visualizations/")

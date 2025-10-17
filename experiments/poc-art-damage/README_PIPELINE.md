@@ -2,7 +2,7 @@
 
 Este pipeline completo te permite entrenar y evaluar tres modelos (CNN, ViT, Híbrido) en el dataset ARTeFACT de forma automatizada.
 
-## 🎯 Lo que hace el pipeline
+##  Lo que hace el pipeline
 
 1. **Descarga ARTeFACT**: Descarga el dataset una sola vez y lo guarda localmente
 2. **Entrena 3 modelos**:
@@ -17,7 +17,7 @@ Este pipeline completo te permite entrenar y evaluar tres modelos (CNN, ViT, Hí
    - Visualización comparativa (4 paneles)
    - Archivo JSON con métricas F1 y mIoU
 
-## 📁 Estructura de salida
+##  Estructura de salida
 
 ```
 logs/
@@ -82,7 +82,7 @@ Con GPU NVIDIA (ejemplo RTX 3090):
   - Entrenamiento: ~10-15 min por modelo
   - Evaluación: ~4 min por modelo (20 imágenes)
 
-## 📊 Métricas generadas
+##  Métricas generadas
 
 Para cada imagen evaluada (`{image_id}_metrics.json`):
 ```json
@@ -110,7 +110,7 @@ Resumen general (`overall_metrics.json`):
 Comparación de modelos (`summary_results.json`):
 - Métricas de los 3 modelos para comparación directa
 
-## 🔍 Visualización de resultados
+##  Visualización de resultados
 
 Cada imagen genera 4 archivos:
 1. **`{id}_visualization.png`**: Panel de 2x2 con original, GT, predicción y overlay
@@ -164,7 +164,7 @@ Si ves `Bus error` o `shared memory` error:
 - Reduce batch size en el código o usa menos samples
 - El pipeline está configurado para batch_size=2 que funciona en GPUs de 8GB
 
-## 📝 Notas
+##  Notas
 
 - Los modelos vienen con **pesos pre-entrenados** de ImageNet/similares
 - El **fine-tuning** ajusta estos pesos al dataset ARTeFACT

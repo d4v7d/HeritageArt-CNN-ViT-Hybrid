@@ -2,11 +2,11 @@
 
 Production-ready POC for downloading and processing ARTeFACT dataset via git-lfs cloning.
 
-✅ **100% Success Rate** - Handles all images including 133M pixel files  
-✅ **Memory Efficient** - Processes large images without OOM  
-✅ **Full Control** - Direct parquet access with custom processing
+- **100% Success Rate** - Handles all images including 133M pixel files  
+- **Memory Efficient** - Processes large images without OOM  
+- **Full Control** - Direct parquet access with custom processing
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 artefact-repo-analysis/
@@ -121,29 +121,29 @@ python visualize_samples.py
 
 ## Processing Results
 
-### ✅ Completed
+### Completed
 - 1 parquet file downloaded (train-00000-of-00028.parquet)
 - 15/15 samples processed successfully
 - Includes 1 extremely large image (133M pixels) - handled without crash
 - Output in `data/processed_all/`
 
-### 📊 Dataset Sample (first 15 images)
+### Dataset Sample (first 15 images)
 - **Materials**: Parchment (6), Paper (5), Film emulsion (3), Glass (1)
 - **Content**: Artistic (7), Photographic (6), Line art (2)
 - **Damage types**: Discolourations, peels, tears, dirt, hairs, scratches, dust, folds
 
 ## Notes
 
-✅ **Production-Ready**: Successfully handles all image sizes including 133M pixel images  
-✅ **Memory Efficient**: Processes one sample at a time with aggressive resizing  
-✅ **Complete Control**: Direct parquet access without datasets library overhead  
+- **Production-Ready**: Successfully handles all image sizes including 133M pixel images  
+- **Memory Efficient**: Processes one sample at a time with aggressive resizing  
+- **Complete Control**: Direct parquet access without datasets library overhead  
 
 ## Next Steps
 
-1. ✅ Clone repository with git-lfs
-2. ✅ Download first parquet file (377 MB)
-3. ✅ Inspect parquet structure
-4. ✅ Create extraction script
-5. ✅ Process all 15 samples successfully
-6. ⏳ Download more parquet files for larger dataset
-7. ⏳ Integrate with training pipeline
+1. Clone repository with git-lfs
+2. Download first parquet file (377 MB)
+3. Inspect parquet structure
+4. Create extraction script
+5. Process all 15 samples successfully
+6. Download more parquet files for larger dataset
+7. Integrate with training pipeline
