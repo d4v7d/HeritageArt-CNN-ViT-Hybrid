@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  artefact-training:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: artefact-training-minimal:latest
+    container_name: artefact-training-minimal
+    
+    volumes:
+      - ../:/workspace
+      - ~/.cache:/workspace/.cache
+    
+    working_dir: /workspace
+    
+    environment:
+      - PYTHONPATH=/workspace
+      - CUDA_VISIBLE_DEVICES=0
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
+    shm_size: '8gb'
+    
+    stdin_open: true
+    tty: true
