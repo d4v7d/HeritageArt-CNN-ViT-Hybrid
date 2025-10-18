@@ -1,0 +1,23 @@
+# Swin Transformer Tiny + UPerNet Configuration
+# Vision Transformer with hierarchical window attention
+
+model:
+  name: "swin_tiny_upernet"
+  encoder: "swin_tiny_patch4_window7_224"
+  encoder_source: "timm"
+  encoder_weights: "imagenet_in1k"
+  decoder: "upernet"
+  classes: 2
+  
+  # UPerNet settings
+  upernet:
+    ppm_pool_scales: [1, 2, 3, 6]
+    fpn_out_channels: 256
+    dropout: 0.1
+  
+  # Swin-specific
+  swin:
+    window_size: 7
+    drop_path_rate: 0.2           # Stochastic depth
+
+# Inherit all from base_config.yaml

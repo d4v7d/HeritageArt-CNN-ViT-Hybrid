@@ -44,3 +44,4 @@ htmlcov/
 .mypy_cache/
 
 experiments/poc-art-damage-ARCHIVED/
+experiments/_mmseg_demo-ARCHIVED/

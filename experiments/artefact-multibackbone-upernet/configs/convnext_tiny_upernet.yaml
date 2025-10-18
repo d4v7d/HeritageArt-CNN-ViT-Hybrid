@@ -1,0 +1,18 @@
+# ConvNeXt-Tiny + UPerNet Configuration
+# Modern CNN baseline with Swin-inspired design
+
+model:
+  name: "convnext_tiny_upernet"
+  encoder: "convnext_tiny"
+  encoder_source: "timm"
+  encoder_weights: "imagenet_in1k"  # ImageNet-1K pretrained
+  decoder: "upernet"
+  classes: 2                         # Binary: Clean vs Damage
+  
+  # UPerNet settings
+  upernet:
+    ppm_pool_scales: [1, 2, 3, 6]
+    fpn_out_channels: 256
+    dropout: 0.1
+
+# Inherit all from base_config.yaml
