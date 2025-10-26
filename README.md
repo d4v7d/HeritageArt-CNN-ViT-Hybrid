@@ -6,21 +6,78 @@ A hybrid CNN-ViT architecture for heritage artifact damage segmentation using th
 
 ```
 HeritageArt-CNN-ViT-Hybrid/
-├── pipeline/                    # Main training pipeline
-│   ├── src/                    # Source code (models, datasets, training)
-│   ├── configs/                # Configuration files
-│   ├── tests/                  # Unit tests
-│   ├── requirements.txt        # Python dependencies
-│   └── pyproject.toml         # Project metadata
+├── pipeline/                           # Main training pipeline (planned)
+│   ├── src/                           # Source code (models, datasets, training)
+│   ├── configs/                       # Configuration files
+│   ├── tests/                         # Unit tests
+│   ├── requirements.txt               # Python dependencies
+│   └── pyproject.toml                # Project metadata
 │
-├── experiments/                 # Research experiments and POCs
-│   ├── poc-art-damage/        # Complete training pipeline POC
-│   ├── artefact-repo-analysis/ # Git LFS + Parquet processing
-│   ├── artefact-data-obtention/ # HuggingFace datasets streaming
-│   └── ARTEFACT_EXPERIMENTS.md # Experiments documentation
+├── experiments/                        # Research experiments and POCs
+│   ├── artefact-data-obtention/      # ARTeFACT dataset downloader
+│   │   └── data/demo/                # 50 samples (binary segmentation)
+│   ├── artefact-multibackbone-upernet/ # **POC-5: Multi-backbone comparison ✅**
+│   │   ├── scripts/                  # Training, evaluation, comparison
+│   │   ├── configs/                  # Model configs (ConvNeXt, Swin, MaxViT)
+│   │   ├── logs/                     # Training logs + evaluation results
+│   │   └── README.md                 # POC-5 documentation
+│   └── utils/                         # Utility scripts (CUDA test, etc.)
 │
-└── documentation/              # Project documentation
+└── documentation/                      # Project documentation
+    ├── main.tex                       # Research paper (LaTeX)
+    └── From-Paper-to-Plan.md         # Implementation roadmap
 ```
+
+---
+
+## 🏆 POC-5 Results: Multi-Backbone Comparison
+
+**Objective**: Compare CNN, Vision Transformer, and Hybrid architectures for heritage art damage detection.
+
+### Architecture & Methodology
+
+All models use:
+- **Decoder**: UPerNet (Unified Perceptual Parsing Network)
+  - PPM (Pyramid Pooling Module) at scales [1, 2, 3, 6]
+  - FPN (Feature Pyramid Network) with 256 channels
+  - Purpose: Fair comparison by isolating encoder differences
+- **Dataset**: ARTeFACT 50 samples (40 train / 10 val)
+- **Task**: Binary segmentation (Clean vs Damage)
+- **Resolution**: 512×512
+- **Training**: 60 epochs, batch size 4, AdamW optimizer (lr=0.0003)
+- **Loss**: DiceFocalLoss (dice=0.7, focal=0.3)
+
+### Results Summary
+
+| 🏅 | Model | Type | mIoU | mF1 | Accuracy | Damage IoU | Params | Best Epoch |
+|---|-------|------|------|-----|----------|------------|--------|------------|
+| 🥇 | **MaxViT-Tiny** | **Hybrid** | **71.64%** | **82.13%** | **91.01%** | **53.29%** | 39.2M | 38 |
+| 🥈 | Swin-Tiny | Transformer | 64.23% | 76.07% | 87.21% | 42.59% | 37.4M | 34 |
+| 🥉 | ConvNeXt-Tiny | CNN | 63.67% | 75.52% | 87.16% | 41.48% | 37.7M | 38 |
+
+### Key Findings
+
+**🚀 MaxViT (Hybrid CNN+Multi-axis Attention) is the winner:**
+- **+12.5% mIoU** vs ConvNeXt (CNN)
+- **+11.5% mIoU** vs Swin (Transformer)
+- **+28.5% Damage IoU** vs ConvNeXt
+- **+25.1% Damage IoU** vs Swin
+
+**Architecture Insights:**
+1. **Hybrid > Transformer > CNN** for heritage art damage detection
+2. **MaxViT** excels at detecting damage (53.29% Damage IoU)
+3. All models converge around epoch 34-38
+4. Small dataset (50 samples) → Hybrid better leverages ImageNet pretraining
+
+**Per-Class Performance (MaxViT):**
+- **Clean**: 89.99% IoU, 94.73% F1
+- **Damage**: 53.29% IoU, 69.53% F1
+- **Clean Precision**: 92.29% | **Damage Precision**: 82.09%
+- **Clean Recall**: 97.30% | **Damage Recall**: 60.30%
+
+**Detailed Results**: See `experiments/artefact-multibackbone-upernet/logs/comparison/`
+- Training curves, metrics comparison, per-class IoU, convergence analysis
+- Confusion matrices and prediction visualizations
 
 ---
 
