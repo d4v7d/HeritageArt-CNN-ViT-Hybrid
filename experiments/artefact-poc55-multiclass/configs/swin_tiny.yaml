@@ -1,0 +1,11 @@
+# Swin-Tiny Configuration for POC-5.5
+
+_base_: poc55_256px.yaml
+
+model:
+  encoder: swin_tiny_patch4_window7_224
+  encoder_weights: imagenet_in1k
+
+logging:
+  experiment_name: poc55_swin_tiny_256px
+  log_dir: ./logs/swin_tiny

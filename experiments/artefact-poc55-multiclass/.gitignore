@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# Training artifacts
+logs/
+!logs/README.md
+checkpoints/
+*.pth
+*.pt
+
+# Data
+data/
+!data/.gitkeep
+*.jpg
+*.jpeg
+*.png
+*.csv
+*.json
+
+# Caches
+.cache/
+*.cache
+
+# Docker
+.dockerignore
+
+# TensorBoard
+events.out.tfevents.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+nohup.out

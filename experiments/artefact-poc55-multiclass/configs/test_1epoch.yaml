@@ -1,0 +1,14 @@
+_base_: base_config.yaml
+
+logging:
+  experiment_name: poc55_test_1epoch
+  log_dir: ./logs/test_1epoch
+
+model:
+  encoder: convnext_tiny
+  encoder_weights: imagenet_in1k
+
+training:
+  epochs: 1
+  # Disable class weights for quick test
+  class_weights: null

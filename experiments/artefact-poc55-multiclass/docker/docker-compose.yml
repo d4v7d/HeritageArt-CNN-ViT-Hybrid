@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  artefact-poc55-training:
+    image: artefact-poc55:latest
+    container_name: artefact-poc55-multiclass
+    
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    runtime: nvidia
+    
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+      - TORCH_HOME=/workspace/.cache/torch
+      - HF_HOME=/workspace/.cache/huggingface
+    
+    volumes:
+      - ../scripts:/workspace/scripts
+      - ../data:/workspace/data
+      - ../configs:/workspace/configs
+      - ../logs:/workspace/logs
+      - ../.cache:/workspace/.cache
+    
+    working_dir: /workspace
+    
+    # Keep container running for interactive commands
+    stdin_open: true
+    tty: true
+    
+    command: /bin/bash
+    
+    shm_size: '8gb'
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

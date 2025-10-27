@@ -1,0 +1,138 @@
+# POC-5.5 Base Configuration
+# Laptop-optimized for 6GB VRAM (RTX 3050/1000 Ada)
+
+# Seed for reproducibility
+seed: 42
+
+# Data configuration
+data:
+  root: ./data/artefact
+  image_size: 256  # Laptop-optimized (vs 512)
+  train_val_split: 0.8
+  ignore_index: 255
+  num_classes: 16  # 0-15 fine classes
+
+# Model configuration  
+model:
+  encoder: convnext_tiny  # Override in model-specific configs
+  encoder_weights: imagenet_in1k  # Pretrained on ImageNet
+  classes: 16
+  
+  # Hierarchical heads
+  hierarchical: true
+  num_binary: 2
+  num_coarse: 4
+  num_fine: 16
+  
+  # UPerNet decoder
+  upernet:
+    ppm_pool_scales: [1, 2, 3, 6]
+    fpn_out_channels: 256
+    dropout: 0.1
+
+# Training configuration
+training:
+  epochs: 30  # Laptop-optimized (vs 60-100)
+  batch_size: 4  # 6GB VRAM limit
+  gradient_accumulation_steps: 2  # Effective batch = 8
+  mixed_precision: true  # FP16 (critical for 6GB)
+  gradient_checkpointing: true  # Trade 20% speed for 40% VRAM
+  
+  # Optimizer
+  optimizer:
+    type: AdamW
+    lr: 1e-4
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Learning rate scheduler
+  scheduler:
+    type: CosineAnnealingLR
+    T_max: 30
+    eta_min: 1e-6
+  
+  # Early stopping (aggressive for laptop)
+  early_stopping:
+    patience: 5
+    min_delta: 0.001
+    mode: max  # Monitor mIoU (higher is better)
+  
+  # Class weights (handle imbalance)
+  class_weights:
+    method: inverse_sqrt  # Options: inverse, inverse_sqrt, None
+    smooth: 0.01  # Smoothing factor to avoid extreme weights
+
+# Hierarchical loss weights
+loss:
+  type: hierarchical_dice_focal
+  weights:
+    binary: 0.2   # Auxiliary task 1 (Clean vs Damage)
+    coarse: 0.3   # Auxiliary task 2 (4 damage groups)
+    fine: 1.0     # Main task (16 classes)
+  
+  # Dice + Focal components
+  dice_weight: 0.5
+  focal_weight: 0.5
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+
+# Data augmentation
+augmentation:
+  train:
+    horizontal_flip: 0.5
+    vertical_flip: 0.3
+    rotate_90: 0.3
+    brightness_contrast: 0.3
+    gaussian_noise: 0.2
+    coarse_dropout: 0.2  # Random patches (simulates damage diversity)
+  
+  val:
+    # Only resize + normalize (no augmentation)
+    pass
+
+# Dataloader
+num_workers: 4
+pin_memory: true
+
+# Logging
+logging:
+  log_dir: ./logs
+  checkpoint_dir: ./logs/checkpoints
+  save_interval: 5  # Save every 5 epochs
+  log_interval: 10  # Log every 10 batches
+  
+  # TensorBoard
+  tensorboard: true
+  
+  # Weights & Biases (optional)
+  wandb:
+    enabled: false
+    project: artefact-poc55
+    entity: null
+  
+  # Save best model
+  save_best: true
+  monitor_metric: val_miou_fine  # Monitor fine-grained mIoU
+
+# Evaluation
+evaluation:
+  metrics:
+    - iou
+    - dice
+    - precision
+    - recall
+    - f1
+  
+  # Per-class metrics
+  per_class: true
+  
+  # Confusion matrix
+  confusion_matrix: true
+  
+  # Save predictions
+  save_predictions: true
+  num_vis_samples: 6  # Visualizations per epoch
+
+# Hardware
+device: cuda

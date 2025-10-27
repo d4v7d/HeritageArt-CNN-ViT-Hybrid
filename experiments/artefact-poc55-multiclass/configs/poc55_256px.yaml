@@ -1,0 +1,26 @@
+# POC-5.5: 256px Laptop-Optimized Configuration
+# For RTX 3050/1000 Ada 6GB VRAM
+
+# Import base config
+_base_: base_config.yaml
+
+# Override data size
+data:
+  image_size: 256  # Laptop-optimized (2.25x faster than 384px)
+
+# Model selection (override this file for different models)
+model:
+  encoder: convnext_tiny
+  encoder_weights: imagenet_in1k
+
+# Training optimizations
+training:
+  batch_size: 4
+  gradient_accumulation_steps: 2  # Effective batch = 8
+  mixed_precision: true  # CRITICAL for 6GB VRAM
+  gradient_checkpointing: true  # Save 40% VRAM, lose 20% speed
+
+# Logging
+logging:
+  experiment_name: poc55_256px_hierarchical
+  log_dir: ./logs/convnext_tiny
