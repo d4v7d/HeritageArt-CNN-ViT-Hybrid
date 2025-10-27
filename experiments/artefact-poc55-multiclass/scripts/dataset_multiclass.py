@@ -170,6 +170,46 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
                 A.MotionBlur(blur_limit=3, p=1.0),
             ], p=0.2),
             
+            # Heritage-Specific Augmentations (domain adaptation)
+            A.OneOf([
+                # Aging simulation: yellowing, fading
+                A.ToSepia(p=0.3),
+                A.HueSaturationValue(
+                    hue_shift_limit=0,
+                    sat_shift_limit=(-30, 0),  # Desaturation only
+                    val_shift_limit=(-15, 0),  # Darkening only
+                    p=0.5
+                ),
+                # Vignetting (darker edges from archival photos)
+                A.GaussNoise(var_limit=(10, 50), p=0.3),
+            ], p=0.3),
+            
+            # Scanning artifacts
+            A.OneOf([
+                A.ImageCompression(
+                    quality_lower=70,
+                    quality_upper=95,
+                    compression_type='jpeg',
+                    p=0.5
+                ),
+                A.GridDistortion(num_steps=10, distort_limit=0.05, p=0.2),
+            ], p=0.25),
+            
+            # Lighting variation (museum/archive conditions)
+            A.OneOf([
+                A.RandomBrightnessContrast(
+                    brightness_limit=0.2,
+                    contrast_limit=0.15,
+                    p=0.6
+                ),
+                A.RGBShift(
+                    r_shift_limit=15,  # Warm/cool lighting shifts
+                    g_shift_limit=10,
+                    b_shift_limit=15,
+                    p=0.4
+                ),
+            ], p=0.4),
+            
             # Ensure consistent size (CRITICAL - some transforms may change dimensions)
             A.Resize(height=img_size, width=img_size, interpolation=1),
             

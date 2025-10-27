@@ -32,7 +32,7 @@ model:
 
 # Training configuration
 training:
-  epochs: 50  # Increased from 30 (more learning time)
+  epochs: 50  # Increased from 30 (more learning time for rare classes)
   batch_size: 8  # Increased from 4 (we have 5GB VRAM margin!)
   gradient_accumulation_steps: 1  # Reduced from 2 (effective batch = 8)
   mixed_precision: true  # FP16 (critical for 6GB)
@@ -60,7 +60,7 @@ training:
   
   # Class weights (handle imbalance)
   class_weights:
-    method: None  # No class weights to speed up training
+    method: inverse_sqrt  # Handle severe imbalance (sqrt dampening)
 
 # Hierarchical loss weights (rebalanced for better fine-head learning)
 loss:
