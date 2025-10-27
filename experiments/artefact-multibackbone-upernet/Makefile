@@ -24,22 +24,22 @@ help:
 # Build Docker image
 build:
 	@echo "Building Docker image for multi-backbone training..."
-	docker-compose -f docker/docker-compose.yml build
+	docker compose -f docker/docker-compose.yml build
 
 # Train individual models (60 epochs each, ~20-25min)
 train-convnext:
 	@echo "Training ConvNeXt-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/train.py --config configs/convnext_tiny_upernet.yaml
 
 train-swin:
 	@echo "Training Swin-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/train.py --config configs/swin_tiny_upernet.yaml
 
 train-maxvit:
 	@echo "Training MaxViT-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/train.py --config configs/maxvit_tiny_upernet.yaml
 
 # Train all models sequentially
@@ -49,17 +49,17 @@ train-all: train-convnext train-swin train-maxvit
 # Evaluate individual models
 evaluate-convnext:
 	@echo "Evaluating ConvNeXt-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/evaluate.py --config configs/convnext_tiny_upernet.yaml --checkpoint logs/convnext_tiny_upernet/checkpoints/best_model.pth
 
 evaluate-swin:
 	@echo "Evaluating Swin-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/evaluate.py --config configs/swin_tiny_upernet.yaml --checkpoint logs/swin_tiny_upernet/checkpoints/best_model.pth
 
 evaluate-maxvit:
 	@echo "Evaluating MaxViT-Tiny + UPerNet..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/evaluate.py --config configs/maxvit_tiny_upernet.yaml --checkpoint logs/maxvit_tiny_upernet/checkpoints/best_model.pth
 
 # Evaluate all models
@@ -69,13 +69,13 @@ evaluate-all: evaluate-convnext evaluate-swin evaluate-maxvit
 # Compare all models (dynamic analysis with visualizations)
 compare:
 	@echo "Comparing all models dynamically..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/compare.py --logs logs --output logs/comparison
 
 # Generate attention maps for Swin and MaxViT
 visualize-attention:
 	@echo "Visualizing attention maps (Swin + MaxViT)..."
-	docker-compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
+	docker compose -f docker/docker-compose.yml run --rm multibackbone-upernet \
 		python scripts/visualize_attention.py \
 			--config-swin configs/swin_tiny_upernet.yaml \
 			--config-maxvit configs/maxvit_tiny_upernet.yaml \

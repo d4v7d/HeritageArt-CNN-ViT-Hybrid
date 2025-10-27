@@ -7,7 +7,13 @@ services:
       dockerfile: Dockerfile
     image: multibackbone-upernet:latest
     container_name: multibackbone-upernet
-    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - CUDA_VISIBLE_DEVICES=0
