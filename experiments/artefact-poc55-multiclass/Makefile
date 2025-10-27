@@ -32,15 +32,15 @@ help:
 
 build:
 	@echo "🔨 Building Docker image..."
-	cd docker && docker-compose build
+	cd docker && docker compose build
 
 up:
 	@echo "🚀 Starting container..."
-	cd docker && docker-compose up -d
+	cd docker && docker compose up -d
 
 down:
 	@echo "🛑 Stopping container..."
-	cd docker && docker-compose down
+	cd docker && docker compose down
 
 shell:
 	@echo "💻 Opening shell in container..."
