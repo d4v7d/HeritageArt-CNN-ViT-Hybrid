@@ -333,6 +333,9 @@ def compute_class_weights(
         beta = 0.9999
         effective_num = 1.0 - np.power(beta, class_counts)
         weights = (1.0 - beta) / (effective_num + 1e-8)
+    elif method is None or method == 'None':
+        # No class weights
+        weights = np.ones(num_classes, dtype=np.float32)
     else:
         raise ValueError(f"Unknown method: {method}")
     

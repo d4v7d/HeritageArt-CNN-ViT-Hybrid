@@ -1,5 +1,6 @@
-# POC-5.5: 256px Laptop-Optimized Configuration
+# POC-5.5: 256px Laptop-Optimized Configuration (IMPROVED)
 # For RTX 3050/1000 Ada 6GB VRAM
+# Changes: 50 epochs, batch=8, patience=10, Medium Augmentation
 
 # Import base config
 _base_: base_config.yaml
@@ -13,10 +14,10 @@ model:
   encoder: convnext_tiny
   encoder_weights: imagenet_in1k
 
-# Training optimizations
+# Training optimizations (use more available VRAM)
 training:
-  batch_size: 4
-  gradient_accumulation_steps: 2  # Effective batch = 8
+  batch_size: 8  # Increased from 4 (we have margin!)
+  gradient_accumulation_steps: 1  # Reduced from 2 (effective batch = 8)
   mixed_precision: true  # CRITICAL for 6GB VRAM
   gradient_checkpointing: true  # Save 40% VRAM, lose 20% speed
 

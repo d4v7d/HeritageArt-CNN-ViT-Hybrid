@@ -102,37 +102,84 @@ class ArtefactMulticlassDataset(Dataset):
 
 
 def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
-    """Get augmentation transforms."""
+    """
+    Get augmentation transforms.
+    
+    Implements Medium Augmentation (5-7x effective dataset) for Tiny models.
+    Based on DATA-AUGMENTATION-STRATEGY.md recommendations.
+    """
     
     img_size = config['data'].get('image_size', 256)
     
     if mode == 'train':
-        aug_config = config['augmentation']['train']
+        # Medium Augmentation: Balanced diversity + realism
         transforms_list = [
+            # Geometric (heritage-safe)
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.4),
+            A.Rotate(limit=30, p=0.6, border_mode=0),
+            A.RandomResizedCrop(
+                size=(img_size, img_size),  # Changed from height/width
+                scale=(0.7, 1.0),      # 70-100% crop
+                ratio=(0.85, 1.15),    # Slight aspect distortion
+                p=0.8
+            ),
+            A.ShiftScaleRotate(
+                shift_limit=0.1,       # 10% translation
+                scale_limit=0.15,      # ±15% zoom
+                rotate_limit=20,
+                border_mode=0,
+                p=0.5
+            ),
+            
+            # Photometric (lighting/color variations)
+            A.RandomBrightnessContrast(
+                brightness_limit=0.2,  # ±20% brightness
+                contrast_limit=0.2,    # ±20% contrast
+                p=0.6
+            ),
+            A.HueSaturationValue(
+                hue_shift_limit=15,
+                sat_shift_limit=25,
+                val_shift_limit=15,
+                p=0.5
+            ),
+            A.ColorJitter(
+                brightness=0.15,
+                contrast=0.15,
+                saturation=0.15,
+                hue=0.05,
+                p=0.4
+            ),
+            
+            # Advanced (texture preservation)
+            A.OneOf([
+                A.ElasticTransform(alpha=50, sigma=5, p=1.0),
+                A.GridDistortion(num_steps=5, distort_limit=0.1, border_mode=0, p=1.0),
+                A.OpticalDistortion(distort_limit=0.1, border_mode=0, p=1.0),
+            ], p=0.3),
+            
+            # Noise & Blur (simulate scanning/aging)
+            A.OneOf([
+                A.GaussNoise(p=1.0),
+                A.ISONoise(color_shift=(0.01, 0.03), intensity=(0.1, 0.3), p=1.0),
+                A.MultiplicativeNoise(multiplier=(0.95, 1.05), p=1.0),
+            ], p=0.3),
+            A.OneOf([
+                A.GaussianBlur(blur_limit=(3, 5), p=1.0),
+                A.MotionBlur(blur_limit=3, p=1.0),
+            ], p=0.2),
+            
+            # Ensure consistent size (CRITICAL - some transforms may change dimensions)
             A.Resize(height=img_size, width=img_size, interpolation=1),
-            A.HorizontalFlip(p=aug_config.get('horizontal_flip', 0.5)),
-            A.VerticalFlip(p=aug_config.get('vertical_flip', 0.3)),
-            A.RandomRotate90(p=aug_config.get('rotate_90', 0.3)),
-        ]
-        
-        if aug_config.get('brightness_contrast', 0.0) > 0:
-            transforms_list.append(
-                A.RandomBrightnessContrast(p=aug_config['brightness_contrast'])
-            )
-        
-        if aug_config.get('gaussian_noise', 0.0) > 0:
-            transforms_list.append(
-                A.GaussNoise(p=aug_config['gaussian_noise'])
-            )
-        
-        # Normalization and tensor conversion
-        transforms_list.extend([
+            
+            # Normalization and tensor conversion
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2()
-        ])
+        ]
         
     else:
-        # Validation: resize and normalize only
+        # Validation: resize and normalize only (NO augmentation)
         transforms_list = [
             A.Resize(height=img_size, width=img_size, interpolation=1),
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),

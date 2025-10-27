@@ -32,9 +32,9 @@ model:
 
 # Training configuration
 training:
-  epochs: 30  # Laptop-optimized (vs 60-100)
-  batch_size: 4  # 6GB VRAM limit
-  gradient_accumulation_steps: 2  # Effective batch = 8
+  epochs: 50  # Increased from 30 (more learning time)
+  batch_size: 8  # Increased from 4 (we have 5GB VRAM margin!)
+  gradient_accumulation_steps: 1  # Reduced from 2 (effective batch = 8)
   mixed_precision: true  # FP16 (critical for 6GB)
   gradient_checkpointing: true  # Trade 20% speed for 40% VRAM
   
@@ -49,27 +49,26 @@ training:
   # Learning rate scheduler
   scheduler:
     type: CosineAnnealingLR
-    T_max: 30
+    T_max: 50  # Updated to match epochs
     eta_min: 1e-6
   
-  # Early stopping (aggressive for laptop)
+  # Early stopping (less aggressive, allow more learning)
   early_stopping:
-    patience: 5
+    patience: 10  # Increased from 5
     min_delta: 0.001
     mode: max  # Monitor mIoU (higher is better)
   
   # Class weights (handle imbalance)
   class_weights:
-    method: inverse_sqrt  # Options: inverse, inverse_sqrt, None
-    smooth: 0.01  # Smoothing factor to avoid extreme weights
+    method: None  # No class weights to speed up training
 
-# Hierarchical loss weights
+# Hierarchical loss weights (rebalanced for better fine-head learning)
 loss:
   type: hierarchical_dice_focal
   weights:
-    binary: 0.2   # Auxiliary task 1 (Clean vs Damage)
-    coarse: 0.3   # Auxiliary task 2 (4 damage groups)
-    fine: 1.0     # Main task (16 classes)
+    binary: 0.15   # Reduced from 0.2 (less weight on easy task)
+    coarse: 0.25   # Reduced from 0.3 
+    fine: 1.2      # Increased from 1.0 (MORE focus on main task)
   
   # Dice + Focal components
   dice_weight: 0.5
