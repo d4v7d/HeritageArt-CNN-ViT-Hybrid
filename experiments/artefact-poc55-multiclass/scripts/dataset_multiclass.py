@@ -17,6 +17,11 @@ from albumentations.pytorch import ToTensorV2
 class ArtefactMulticlassDataset(Dataset):
     """ARTeFACT Dataset for hierarchical multiclass segmentation."""
     
+    # Excluded images (too large, cause OOM/performance issues)
+    EXCLUDED_IMAGES = {
+        'cljmrkz5o342f07clh6hz82sk.png',  # 187 MB, 12288x10860 px (127x larger than avg)
+    }
+    
     def __init__(
         self,
         image_paths: List[str],
@@ -24,12 +29,22 @@ class ArtefactMulticlassDataset(Dataset):
         transform: Optional[A.Compose] = None,
         ignore_index: int = 255
     ):
-        self.image_paths = image_paths
-        self.mask_paths = mask_paths
+        # Filter out excluded images
+        filtered_pairs = [
+            (img, mask) for img, mask in zip(image_paths, mask_paths)
+            if Path(img).name not in self.EXCLUDED_IMAGES
+        ]
+        
+        if len(filtered_pairs) < len(image_paths):
+            excluded_count = len(image_paths) - len(filtered_pairs)
+            print(f"⚠️  Excluded {excluded_count} oversized image(s) from dataset")
+        
+        self.image_paths = [p[0] for p in filtered_pairs]
+        self.mask_paths = [p[1] for p in filtered_pairs]
         self.transform = transform
         self.ignore_index = ignore_index
         
-        assert len(image_paths) == len(mask_paths), "Mismatch between images and masks"
+        assert len(self.image_paths) == len(self.mask_paths), "Mismatch between images and masks"
     
     def __len__(self) -> int:
         return len(self.image_paths)
@@ -124,4 +139,8 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
             ToTensorV2()
         ]
     
-    return A.Compose(transforms_list, additional_targets={'mask1': 'mask', 'mask2': 'mask'})
+    return A.Compose(
+        transforms_list, 
+        additional_targets={'mask1': 'mask', 'mask2': 'mask'},
+        is_check_shapes=False
+    )

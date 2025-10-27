@@ -1,5 +1,5 @@
 .PHONY: help build up down shell download test-epoch train-convnext train-swin train-maxvit \
-        eval-convnext eval-swin eval-maxvit eval-all compare clean logs
+        eval-convnext eval-swin eval-maxvit eval-all compare clean clean-trainings logs
 
 help:
 	@echo "POC-5.5: Hierarchical Multi-Task Segmentation"
@@ -27,7 +27,8 @@ help:
 	@echo ""
 	@echo "Other:"
 	@echo "  make logs          - Show training logs"
-	@echo "  make clean         - Remove logs and checkpoints"
+	@echo "  make clean-trainings - Remove only training logs (no confirmation)"
+	@echo "  make clean         - Remove logs and checkpoints (asks confirmation)"
 
 build:
 	@echo "🔨 Building Docker image..."
@@ -47,13 +48,13 @@ shell:
 
 download:
 	@echo "📥 Downloading ARTeFACT dataset..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/download_dataset.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/download_dataset.py \
 		--output-dir /workspace/data/artefact
 	@echo "✅ Dataset downloaded to data/artefact/"
 
 test-epoch:
 	@echo "🧪 Testing 1 epoch with ConvNeXt (VRAM validation)..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
 		--config /workspace/configs/convnext_tiny.yaml \
 		--output-dir /workspace/logs \
 		--test-epoch
@@ -61,19 +62,19 @@ test-epoch:
 
 train-convnext:
 	@echo "🚂 Training ConvNeXt-Tiny (30 epochs, ~46 minutes on RTX 3050 6GB)..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
 		--config /workspace/configs/convnext_tiny.yaml \
 		--output-dir /workspace/logs
 
 train-swin:
 	@echo "🚂 Training Swin-Tiny (30 epochs, ~46 minutes)..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
 		--config /workspace/configs/swin_tiny.yaml \
 		--output-dir /workspace/logs
 
 train-maxvit:
 	@echo "🚂 Training MaxViT-Tiny (30 epochs, ~46 minutes)..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/train_poc55.py \
 		--config /workspace/configs/maxvit_tiny.yaml \
 		--output-dir /workspace/logs
 
@@ -87,24 +88,24 @@ train-all:
 # Evaluation commands
 eval-convnext:
 	@echo "📊 Evaluating ConvNeXt-Tiny..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
-		--checkpoint /workspace/logs/convnext_tiny/checkpoints/best_model.pth \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
+		--checkpoint /workspace/logs/poc55_convnext_tiny_256px/checkpoints/best_model.pth \
 		--config /workspace/configs/convnext_tiny.yaml \
-		--output-dir /workspace/logs/convnext_tiny/evaluation
+		--output /workspace/logs/poc55_convnext_tiny_256px/evaluation
 
 eval-swin:
 	@echo "📊 Evaluating Swin-Tiny..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
-		--checkpoint /workspace/logs/swin_tiny/checkpoints/best_model.pth \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
+		--checkpoint /workspace/logs/poc55_swin_tiny_256px/checkpoints/best_model.pth \
 		--config /workspace/configs/swin_tiny.yaml \
-		--output-dir /workspace/logs/swin_tiny/evaluation
+		--output /workspace/logs/poc55_swin_tiny_256px/evaluation
 
 eval-maxvit:
 	@echo "📊 Evaluating MaxViT-Tiny..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
-		--checkpoint /workspace/logs/maxvit_tiny/checkpoints/best_model.pth \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/evaluate.py \
+		--checkpoint /workspace/logs/poc55_maxvit_tiny_256px/checkpoints/best_model.pth \
 		--config /workspace/configs/maxvit_tiny.yaml \
-		--output-dir /workspace/logs/maxvit_tiny/evaluation
+		--output /workspace/logs/poc55_maxvit_tiny_256px/evaluation
 
 eval-all:
 	@echo "📊 Evaluating all 3 models..."
@@ -116,7 +117,7 @@ eval-all:
 # Comparison
 compare:
 	@echo "📊 Comparing all models and generating report..."
-	docker exec -it artefact-poc55-multiclass python /workspace/scripts/compare.py \
+	docker exec artefact-poc55-multiclass python /workspace/scripts/compare.py \
 		--logs /workspace/logs \
 		--output /workspace/logs/comparison
 	@echo "✅ Comparison complete! Check logs/comparison/"
@@ -140,6 +141,11 @@ logs:
 		xargs -I {} echo "   {} models saved"
 	@echo ""
 	@echo "Commands: make logs (refresh) | docker logs artefact-poc55-multiclass -f (live)"
+
+clean-trainings:
+	@echo "🧹 Cleaning training logs (poc55_*)..."
+	docker exec artefact-poc55-multiclass bash -c "rm -rf /workspace/logs/poc55_*"
+	@echo "✅ Training logs cleaned"
 
 clean:
 	@echo "🧹 Cleaning logs and checkpoints..."

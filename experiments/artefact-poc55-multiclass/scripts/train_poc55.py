@@ -23,6 +23,10 @@ from torch.cuda.amp import autocast, GradScaler
 
 from tqdm import tqdm
 
+# Disable PIL's DecompressionBomb warning (we handle large images safely with transforms)
+from PIL import Image
+Image.MAX_IMAGE_PIXELS = None
+
 # Add current dir to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 

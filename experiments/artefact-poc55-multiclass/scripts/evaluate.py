@@ -21,12 +21,45 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import json
+from typing import Dict
 
 # Add current dir to path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from models.hierarchical_upernet import build_hierarchical_model
 from dataset_multiclass import ArtefactMulticlassDataset, get_multiclass_transforms
+
+
+def load_config(config_path: str) -> Dict:
+    """Load and merge configuration files with _base_ support."""
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    # Load base config if specified (support both 'base' and '_base_')
+    base_key = '_base_' if '_base_' in config else 'base'
+    if base_key in config:
+        base_path = Path(config_path).parent / config[base_key]
+        with open(base_path, 'r') as f:
+            base_config = yaml.safe_load(f)
+        
+        # Recursively load base's base if it exists
+        if '_base_' in base_config or 'base' in base_config:
+            base_config = load_config(str(base_path))
+        
+        # Merge configs (current overrides base)
+        def deep_update(base, override):
+            for key, value in override.items():
+                if key == base_key:  # Skip the _base_ key itself
+                    continue
+                if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+                    deep_update(base[key], value)
+                else:
+                    base[key] = value
+        
+        deep_update(base_config, config)
+        config = base_config
+    
+    return config
 
 
 # ARTeFACT class names (16 classes)
@@ -158,28 +191,22 @@ class HierarchicalMetrics:
 
 
 def load_model(config_path, checkpoint_path, device):
-    """Load trained hierarchical model from checkpoint"""
-    # Load config
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    """Load model from checkpoint."""
+    # Load config with _base_ support
+    config = load_config(config_path)
     
-    # Build model
-    print(f"Building hierarchical model from config...")
+    # Build model (expects full config, not just model section)
     model = build_hierarchical_model(config)
+    model = model.to(device)
     
     # Load checkpoint
     print(f"Loading checkpoint: {checkpoint_path}")
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict'])
+    print(f"  Checkpoint from epoch {checkpoint['epoch']}")
+    print(f"  Val metrics: mIoU_fine={checkpoint.get('val_miou_fine', 0):.4f}")
     
-    epoch = checkpoint.get('epoch', 'unknown')
-    metrics = checkpoint.get('metrics', {})
-    print(f"  Checkpoint from epoch {epoch}")
-    print(f"  Val metrics: mIoU_fine={metrics.get('mIoU_fine', 'N/A'):.4f}")
-    
-    model = model.to(device)
     model.eval()
-    
     return model, config
 
 
@@ -379,8 +406,8 @@ def main():
     print(f"Using device: {device}")
     
     # Load config
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
+    # Load config with _base_ support
+    config = load_config(args.config)
     
     # Setup output directory
     if args.output is None:

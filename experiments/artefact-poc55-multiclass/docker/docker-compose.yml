@@ -13,11 +13,10 @@ services:
     
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_DRIVER_CAPABILITIES=all
       - PYTHONUNBUFFERED=1
-      - TORCH_HOME=/workspace/.cache/torch
-      - HF_HOME=/workspace/.cache/huggingface
+      - TORCH_HOME=/tmp/torch
+      - HF_HOME=/tmp/huggingface
     
     volumes:
       - ../scripts:/workspace/scripts
