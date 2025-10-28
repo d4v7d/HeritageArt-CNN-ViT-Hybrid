@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 from typing import Dict, Tuple
 import numpy as np
+import csv
 
 import torch
 import torch.nn as nn
@@ -325,6 +326,11 @@ def main(args):
     # Setup tensorboard
     writer = SummaryWriter(log_dir)
     
+    # Setup CSV logging
+    csv_file = log_dir / 'training_log.csv'
+    csv_writer = csv.writer(open(csv_file, 'w', newline=''))
+    csv_writer.writerow(['epoch', 'train_loss', 'val_loss', 'mIoU_binary', 'mIoU_coarse', 'mIoU_fine', 'learning_rate'])
+    
     # Create datasets
     print("\nPreparing datasets...")
     data_root = Path(config['data']['root'])
@@ -486,6 +492,17 @@ def main(args):
         print(f"         mIoU (Binary): {val_metrics['mIoU_binary']:.4f}")
         print(f"         mIoU (Coarse): {val_metrics['mIoU_coarse']:.4f}")
         print(f"         mIoU (Fine):   {val_metrics['mIoU_fine']:.4f}")
+        
+        # Log to CSV
+        csv_writer.writerow([
+            epoch,
+            f"{train_metrics['loss']:.4f}",
+            f"{val_metrics['loss']:.4f}",
+            f"{val_metrics['mIoU_binary']:.4f}",
+            f"{val_metrics['mIoU_coarse']:.4f}",
+            f"{val_metrics['mIoU_fine']:.4f}",
+            f"{current_lr:.6f}"
+        ])
         
         # Save checkpoint
         checkpoint = {

@@ -125,11 +125,11 @@ compare:
 logs:
 	@echo "📊 Training Progress:"
 	@echo ""
-	@for model in convnext_tiny swin_tiny maxvit_tiny; do \
+	@for model in poc55_convnext_tiny_256px poc55_swin_tiny_256px poc55_maxvit_tiny_256px; do \
 		if docker exec artefact-poc55-multiclass test -f /workspace/logs/$$model/logs/training_log.csv 2>/dev/null; then \
 			echo "✅ $$model:"; \
 			docker exec artefact-poc55-multiclass tail -1 /workspace/logs/$$model/logs/training_log.csv | \
-				awk -F',' 'NR>1 {printf "   Epoch %s/30 | Train Loss: %.4f | Val Loss: %.4f | mIoU Fine: %.4f\n", $$1, $$2, $$3, $$6}'; \
+				awk -F',' 'NR>1 {printf "   Epoch %s | Train Loss: %.4f | Val Loss: %.4f | mIoU Fine: %.4f\n", $$1, $$2, $$3, $$6}'; \
 			echo ""; \
 		else \
 			echo "⏸️  $$model: Not started"; \
