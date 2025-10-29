@@ -33,10 +33,10 @@ model:
 # Training configuration
 training:
   epochs: 50  # Increased from 30 (more learning time for rare classes)
-  batch_size: 8  # Increased from 4 (we have 5GB VRAM margin!)
-  gradient_accumulation_steps: 1  # Reduced from 2 (effective batch = 8)
-  mixed_precision: true  # FP16 (critical for 6GB)
-  gradient_checkpointing: true  # Trade 20% speed for 40% VRAM
+  batch_size: 24  # Increased for HPC (V100 32GB VRAM)
+  gradient_accumulation_steps: 1  # No need with large batch
+  mixed_precision: true  # FP16
+  gradient_checkpointing: false  # Disable for speed on HPC
   
   # Optimizer
   optimizer:
@@ -91,7 +91,7 @@ augmentation:
     pass
 
 # Dataloader
-num_workers: 4
+num_workers: 8  # Increased for HPC
 pin_memory: true
 
 # Logging
