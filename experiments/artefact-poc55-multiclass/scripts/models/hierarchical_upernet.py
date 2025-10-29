@@ -392,25 +392,23 @@ def build_hierarchical_model(config):
     num_classes_fine = model_cfg.get('classes', 16)
     img_size = config.get('data', {}).get('image_size', 256)
     
-    # Encoder channel configs
+    # Encoder channel configs (standardized out_indices (0,1,2,3))
     ENCODER_CHANNELS = {
         'convnext_tiny': [96, 192, 384, 768],
-        'swin_tiny_patch4_window7_224': [96, 192, 384, 768],
-        'maxvit_tiny_tf_512': [64, 128, 256, 512],
+        'swin_tiny_patch4_window7_224': [96, 192, 384, 768],  # After permute
+        'maxvit_tiny_rw_256': [64, 64, 128, 256],  # Corrected for out_indices (0,1,2,3)
     }
     
     in_channels_list = ENCODER_CHANNELS.get(encoder_name)
     
     if in_channels_list is None:
-        # Auto-detect
+        # Auto-detect (standardized out_indices (0,1,2,3) for all models)
         print(f"⚠️  Auto-detecting channels for {encoder_name}...")
         encoder_kwargs = {
             'pretrained': False,
             'features_only': True,
             'out_indices': (0, 1, 2, 3)
         }
-        if 'maxvit' in encoder_name.lower():
-            encoder_kwargs['out_indices'] = (1, 2, 3, 4)
         if 'swin' in encoder_name.lower() or 'vit' in encoder_name.lower():
             encoder_kwargs['img_size'] = img_size
         

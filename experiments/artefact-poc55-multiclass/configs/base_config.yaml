@@ -54,7 +54,7 @@ training:
   
   # Early stopping (less aggressive, allow more learning)
   early_stopping:
-    patience: 10  # Increased from 5
+    patience: 20  # Increased from 10 to 20 (allow more epochs for convergence)
     min_delta: 0.001
     mode: max  # Monitor mIoU (higher is better)
   
