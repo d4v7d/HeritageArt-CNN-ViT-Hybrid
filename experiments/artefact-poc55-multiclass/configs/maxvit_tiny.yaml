@@ -3,8 +3,9 @@
 _base_: poc55_256px.yaml
 
 model:
-  encoder: maxvit_tiny_rw_256
-  encoder_weights: imagenet_in1k
+  # Use a pretrained variant that exists in the installed timm (224px pretrained weights)
+  encoder: maxvit_tiny_rw_224
+  encoder_weights: sw_in1k
 
 logging:
   experiment_name: poc55_maxvit_tiny_256px
