@@ -90,9 +90,9 @@ class ArtefactMulticlassDataset(Dataset):
                 mask2=mask_coarse
             )
             image = augmented['image']
-            mask_fine = augmented['mask'].long()
-            mask_binary = augmented['mask1'].long()
-            mask_coarse = augmented['mask2'].long()
+            mask_fine = (augmented['mask'] * 255).long().clamp(0, 15)
+            mask_binary = augmented['mask1'].long().clamp(0, 1)
+            mask_coarse = augmented['mask2'].long().clamp(0, 3)
         
         return image, {
             'fine': mask_fine,
@@ -211,7 +211,7 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
             ], p=0.4),
             
             # Ensure consistent size (CRITICAL - some transforms may change dimensions)
-            A.Resize(height=img_size, width=img_size, interpolation=1),
+            A.Resize(height=img_size, width=img_size, interpolation=0),
             
             # Normalization and tensor conversion
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -221,7 +221,7 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
     else:
         # Validation: resize and normalize only (NO augmentation)
         transforms_list = [
-            A.Resize(height=img_size, width=img_size, interpolation=1),
+            A.Resize(height=img_size, width=img_size, interpolation=0),
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2()
         ]
@@ -229,5 +229,6 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
     return A.Compose(
         transforms_list, 
         additional_targets={'mask1': 'mask', 'mask2': 'mask'},
+        mask_interpolation=0,  # Nearest neighbor for masks to preserve integer values
         is_check_shapes=False
     )

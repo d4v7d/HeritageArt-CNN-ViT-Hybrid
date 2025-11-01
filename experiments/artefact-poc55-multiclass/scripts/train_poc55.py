@@ -20,7 +20,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torch.cuda.amp import autocast, GradScaler
+from torch.cuda.amp import GradScaler
+from torch.amp import autocast
 
 from tqdm import tqdm
 
@@ -160,7 +161,7 @@ def train_epoch(
         targets = {k: v.to(device) for k, v in targets.items()}
         
         # Mixed precision forward
-        with autocast(enabled=config['training']['mixed_precision']):
+        with autocast('cuda', enabled=config['training']['mixed_precision']):
             predictions = model(images, return_all_heads=True)
             loss, loss_dict = criterion(predictions, targets)
             
@@ -238,7 +239,7 @@ def validate_epoch(
         targets = {k: v.to(device) for k, v in targets.items()}
         
         # Forward
-        with autocast(enabled=config['training']['mixed_precision']):
+        with autocast('cuda', enabled=config['training']['mixed_precision']):
             predictions = model(images, return_all_heads=True)
             loss, loss_dict = criterion(predictions, targets)
         
@@ -416,6 +417,14 @@ def main(args):
     from models.hierarchical_upernet import build_hierarchical_model
     model = build_hierarchical_model(config)
     model = model.to(device)
+
+        # Después de model = build_model(config)
+    dummy_input = torch.randn(1, 3, 256, 256).to(device)
+    with torch.no_grad():
+        features = model.encoder(dummy_input)
+        print(f"Encoder features shapes: {[f.shape for f in features]}")
+        logits = model(dummy_input)
+        print(f"Model output shape: {logits.shape}")
     
     # Count parameters
     num_params = sum(p.numel() for p in model.parameters())

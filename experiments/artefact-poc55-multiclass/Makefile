@@ -157,18 +157,6 @@ clean:
 		echo "❌ Cancelled"; \
 	fi
 
-# Non-interactive local cleanup (safe for scripts/CI)
-cleanup-local:
-	@echo "🧹 Non-interactive cleanup: removing logs, checkpoints and caches..."
-	@rm -rf logs/* data/artefact/* .cache/* || true
-	@echo "✅ Local cleanup complete"
-
-# Prepare a minimal transfer archive for running POC-5.5 on another machine
-prepare-transfer: cleanup-local
-	@echo "📦 Preparing transfer archive (poc55_transfer.tar.gz)..."
-	@bash ./scripts/prepare_for_transfer.sh
-	@echo "✅ Archive ready: poc55_transfer.tar.gz"
-
 # Quick workflow for testing POC-5.5
 quick-test: build up download test-epoch
 	@echo ""

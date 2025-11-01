@@ -55,8 +55,12 @@ class HierarchicalModelComparison:
         # Load training log
         training_log_path = model_path / "logs" / "training_log.csv"
         if training_log_path.exists():
-            data["training_log"] = pd.read_csv(training_log_path)
-            print(f"  ✅ Training log: {len(data['training_log'])} epochs")
+            try:
+                data["training_log"] = pd.read_csv(training_log_path)
+                print(f"  ✅ Training log: {len(data['training_log'])} epochs")
+            except pd.errors.EmptyDataError:
+                print(f"  ⚠️  Training log exists but is empty")
+                data["training_log"] = None
         else:
             print(f"  ❌ Missing training log")
             data["training_log"] = None

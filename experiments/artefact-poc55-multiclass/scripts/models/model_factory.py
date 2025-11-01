@@ -57,27 +57,31 @@ class UPerNetModel(nn.Module):
         
         self.encoder = timm.create_model(encoder_name, **encoder_kwargs)
         
-        # Verify feature channels match config
-        # Use batch_size=2 to avoid BatchNorm issues
-        dummy_input = torch.randn(2, 3, img_size, img_size)
-        with torch.no_grad():
-            features = self.encoder(dummy_input)
-        
-        # Handle different feature formats
-        # Note: MaxViT contains "vit" in name but uses standard CNN format (B,C,H,W)
-        is_swin_vit = (('swin' in encoder_name.lower() or 'vit' in encoder_name.lower()) 
-                       and 'maxvit' not in encoder_name.lower())
-        
-        if is_swin_vit:
-            # Swin/ViT returns (B, H, W, C), need to transpose
-            actual_channels = [f.shape[3] for f in features]
+        # MaxViT has specific channels, force them
+        if 'maxvit' in encoder_name.lower():
+            in_channels_list = [64, 128, 256, 512]
         else:
-            # ConvNeXt/MaxViT/CNN returns (B, C, H, W)
-            actual_channels = [f.shape[1] for f in features]
-        if actual_channels != in_channels_list:
-            print(f"⚠️  Warning: Expected channels {in_channels_list}, got {actual_channels}")
-            print(f"   Using actual channels from encoder.")
-            in_channels_list = actual_channels
+            # Verify feature channels match config
+            # Use batch_size=2 to avoid BatchNorm issues
+            dummy_input = torch.randn(2, 3, img_size, img_size)
+            with torch.no_grad():
+                features = self.encoder(dummy_input)
+            
+            # Handle different feature formats
+            # Note: MaxViT contains "vit" in name but uses standard CNN format (B,C,H,W)
+            is_swin_vit = (('swin' in encoder_name.lower() or 'vit' in encoder_name.lower()) 
+                           and 'maxvit' not in encoder_name.lower())
+            
+            if is_swin_vit:
+                # Swin/ViT returns (B, H, W, C), need to transpose
+                actual_channels = [f.shape[3] for f in features]
+            else:
+                # ConvNeXt/MaxViT/CNN returns (B, C, H, W)
+                actual_channels = [f.shape[1] for f in features]
+            if actual_channels != in_channels_list:
+                print(f"⚠️  Warning: Expected channels {in_channels_list}, got {actual_channels}")
+                print(f"   Using actual channels from encoder.")
+                in_channels_list = actual_channels
         
         # UPerNet decoder
         self.decoder = UPerNetDecoder(
