@@ -1,19 +1,38 @@
-# POC-5.5: Multiclass Hierarchical Segmentation (Laptop-Optimized)
+# POC-5.5: Multiclass Hierarchical Segmentation (Multi-Environment)
 
 **Created**: October 26, 2025  
-**Status**: ✅ Infrastructure complete, ready for training  
-**Timeline**: ~2.7 hours on RTX 3050 6GB (138min training + 25min eval/compare)  
-**Hardware**: RTX 3050 Laptop 6GB (tested) → Dell Precision 7630 RTX 1000 Ada 6GB (deploy Monday)
+**Updated**: November 7, 2025  
+**Status**: ✅ Multi-environment ready (Docker + SLURM)  
+**Environments**: 
+- 🐳 Docker (Local laptop: RTX 3050 6GB)
+- 🖥️ SLURM (CITIC Server: Tesla V100)
 
 ## Objective
 
-Validate multiclass 16-class segmentation with **Hierarchical Multi-Task Learning** (Innovation #1) on laptop hardware before committing to full POC-6 on server.
+Validate multiclass 16-class segmentation with **Hierarchical Multi-Task Learning** (Innovation #1) on both laptop (Docker) and server (SLURM) environments.
 
 ---
 
 ## 🚀 QUICK START
 
-**Complete workflow** (train all 3 models + evaluate + compare):
+### **Smart Router (Auto-detects environment)**
+
+```bash
+# Check detected environment
+make env
+
+# Works on BOTH Docker and SLURM!
+make help           # Show available commands
+make verify-dataset # Check dataset
+make download       # Download ARTeFACT dataset
+make train-convnext # Train ConvNeXt-Tiny
+make train-all      # Train all 3 models
+make logs           # View logs
+```
+
+### **Environment-Specific Workflows**
+
+#### **🐳 Docker (Local)**
 ```bash
 # 1. Build and start
 make build up
@@ -24,11 +43,29 @@ make download
 # 3. Test 1 epoch (validate VRAM)
 make test-epoch
 
-# 4. Train all 3 models (~2.3 hours)
+# 4. Train all 3 models (~2.3 hours on RTX 3050)
 make train-all
 
 # 5. Evaluate all models (~15 minutes)
 make eval-all
+```
+
+#### **🖥️ SLURM (CITIC Server)**
+```bash
+# 1. Verify environment
+make verify-dataset
+make verify
+
+# 2. Download dataset (if needed)
+make download
+
+# 3. Train all 3 models (parallel on GPU nodes)
+make train-all
+
+# 4. Monitor
+make status
+make logs-live
+```
 
 # 6. Compare and generate report (~10 minutes)
 make compare
