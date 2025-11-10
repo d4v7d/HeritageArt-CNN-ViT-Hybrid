@@ -1,5 +1,5 @@
-.PHONY: help verify-dataset download verify train-convnext train-swin train-maxvit \
-        train-all status logs logs-live cancel clean
+.PHONY: help verify-dataset download verify test train-convnext train-swin train-maxvit \
+        train-all status logs logs-live cancel clean-logs clean-training clean-all clean
 
 help:
 	@echo "POC-5.5: SLURM Deployment (CITIC Server)"
@@ -9,6 +9,10 @@ help:
 	@echo "  make verify-dataset - Check dataset"
 	@echo "  make download       - Smart download"
 	@echo "  make verify         - Verify environment"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test           - 1-epoch test (3-5 min)"
+	@echo "  make test-v100      - V100 optimized test (validates 4x speedup)"
 	@echo ""
 	@echo "Training (submit to GPU nodes):"
 	@echo "  make train-convnext - ConvNeXt job"
@@ -21,6 +25,11 @@ help:
 	@echo "  make logs      - View logs"
 	@echo "  make logs-live - Follow live"
 	@echo "  make cancel    - Cancel jobs"
+	@echo ""
+	@echo "Cleanup:"
+	@echo "  make clean-logs     - Remove SLURM logs"
+	@echo "  make clean-training - Remove training outputs"
+	@echo "  make clean-all      - Remove everything"
 
 verify-dataset:
 	@if [ -d "../data/artefact/images" ]; then \
@@ -41,23 +50,42 @@ verify:
 	conda activate poc55 && \
 	python -c "import torch, timm; print(f'✅ PyTorch: {torch.__version__}'); print(f'✅ timm: {timm.__version__}')"
 
+test:
+	@mkdir -p ../logs/slurm
+	@echo "🧪 Submitting 1-epoch test (validates CUDA + dataset)..."
+	@sbatch slurm_test_1epoch.sh
+	@echo ""
+	@echo "📊 Monitor: make status"
+	@echo "📋 Logs: make logs-live"
+
+test-v100:
+	@mkdir -p ../logs/slurm
+	@echo "🚀 Submitting V100-optimized test (384px, batch=48)..."
+	@sbatch slurm_test_v100.sh
+	@echo ""
+	@echo "Expected: ~15-20s/epoch, >30 imgs/s, 15-20GB VRAM"
+	@echo "vs old: 37s/epoch, 9.1 imgs/s, 2GB VRAM"
+	@echo ""
+	@echo "📊 Monitor: make status"
+	@echo "📋 Logs: make logs-live"
+
 train-convnext:
-	@mkdir -p ../slurm_logs
+	@mkdir -p ../logs/slurm
 	sbatch slurm_train_convnext.sh
 	@echo "✅ ConvNeXt submitted!"
 
 train-swin:
-	@mkdir -p ../slurm_logs
+	@mkdir -p ../logs/slurm
 	sbatch slurm_train_swin.sh
 	@echo "✅ Swin submitted!"
 
 train-maxvit:
-	@mkdir -p ../slurm_logs
+	@mkdir -p ../logs/slurm
 	sbatch slurm_train_maxvit.sh
 	@echo "✅ MaxViT submitted!"
 
 train-all:
-	@mkdir -p ../slurm_logs
+	@mkdir -p ../logs/slurm
 	@sbatch slurm_train_convnext.sh
 	@sbatch slurm_train_swin.sh
 	@sbatch slurm_train_maxvit.sh
@@ -70,16 +98,30 @@ status:
 	@squeue -u btrigueros --format="%.10i %.15j %.8T %.10M %.6D %R" || echo "None running"
 
 logs:
-	@for log in ../slurm_logs/*.out; do [ -f "$$log" ] && tail -30 "$$log"; done
+	@for log in ../logs/slurm/*.out; do [ -f "$$log" ] && tail -30 "$$log"; done
 
 logs-live:
-	@tail -f $$(ls -t ../slurm_logs/*.out 2>/dev/null | head -1)
+	@tail -f $$(ls -t ../logs/slurm/*.out 2>/dev/null | head -1)
 
 cancel:
 	@scancel -u btrigueros --name=poc55-convnext
 	@scancel -u btrigueros --name=poc55-swin
 	@scancel -u btrigueros --name=poc55-maxvit
+	@scancel -u btrigueros --name=poc55-test
 	@echo "✅ Jobs cancelled"
 
+clean-logs:
+	@echo "🧹 Cleaning SLURM logs..."
+	@rm -rf ../logs/slurm/*.{out,err}
+	@echo "✅ SLURM logs cleaned"
+
+clean-training:
+	@echo "🧹 Cleaning training outputs..."
+	@rm -rf ../logs/poc55_*
+	@echo "✅ Training logs cleaned"
+
+clean-all: clean-logs clean-training
+	@echo "✅ All cleanup complete"
+
 clean:
-	@read -p "Remove logs? [y/N]: " c && [ "$$c" = "y" ] && rm -rf ../logs/poc55_* ../slurm_logs/*
+	@read -p "Remove ALL logs (SLURM + training)? [y/N]: " c && [ "$$c" = "y" ] && $(MAKE) clean-all

@@ -1,0 +1,17 @@
+Clase,MaxViT_IoU,Swin_IoU,ConvNeXt_IoU,Frecuencia_Dataset,Dificultad
+Clean,89.2%,91.4%,87.8%,Alta,Facil
+Material_loss,60.3%,48.7%,45.2%,Alta,Media
+Peel,35.1%,27.4%,29.8%,Media,Media
+Other_damage,96.1%,89.3%,69.4%,Alta,Facil
+Dirt_spots,18.5%,22.1%,14.3%,Media,Dificil
+Stains,12.4%,15.8%,9.7%,Baja,Dificil
+Cracks,2.1%,4.3%,1.8%,Baja,Muy_Dificil
+Scratches,0.8%,1.2%,0.3%,Baja,Muy_Dificil
+Dust,5.4%,7.2%,3.9%,Media,Dificil
+Hair,1.5%,2.8%,0.9%,Muy_Baja,Muy_Dificil
+Burn_marks,0.4%,0.7%,0.1%,Muy_Baja,Muy_Dificil
+Lightleak,0.2%,0.3%,0.0%,Muy_Baja,Muy_Dificil
+Fading,3.2%,5.1%,2.4%,Baja,Dificil
+Blur,6.8%,8.4%,4.7%,Media,Dificil
+Fold,8.9%,11.2%,7.1%,Baja,Media
+Writing,14.3%,16.7%,11.8%,Media,Media

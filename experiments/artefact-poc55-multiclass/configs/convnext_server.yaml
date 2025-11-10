@@ -1,0 +1,11 @@
+# ConvNeXt-Tiny Configuration for V100 Server
+
+_base_: poc55_server_v100.yaml
+
+model:
+  encoder: convnext_tiny
+  encoder_weights: imagenet_in1k
+
+logging:
+  experiment_name: poc55_convnext_v100_384px
+  log_dir: ./logs/convnext_v100

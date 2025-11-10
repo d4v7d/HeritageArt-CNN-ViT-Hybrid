@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=poc55-maxvit
-#SBATCH --output=slurm_logs/maxvit_%j.out
-#SBATCH --error=slurm_logs/maxvit_%j.err
+#SBATCH --output=/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass/logs/slurm/maxvit_%j.out
+#SBATCH --error=/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass/logs/slurm/maxvit_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -18,15 +18,16 @@ echo "Node: $SLURM_NODELIST"
 echo "Start: $(date)"
 echo ""
 
-module load miniconda3 cuda11.4 gcc11.2
-source activate poc55
+module load cuda11.4 gcc11.2
+source /opt/modules/miniconda3/etc/profile.d/conda.sh
+conda activate poc55
 
 export PYTHONUNBUFFERED=1
 export HF_HOME=/tmp/huggingface_$USER
 export TORCH_HOME=/tmp/torch_$USER
 
 cd ~/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass
-mkdir -p slurm_logs
+mkdir -p logs/slurm
 
 echo "🖥️ GPU: $(nvidia-smi --query-gpu=name --format=csv,noheader)"
 echo ""

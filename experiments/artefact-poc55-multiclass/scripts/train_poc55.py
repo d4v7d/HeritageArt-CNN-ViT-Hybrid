@@ -23,6 +23,14 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.cuda.amp import GradScaler
 from torch.amp import autocast
 
+# PyTorch 2.0+ optimizations
+try:
+    from torch.profiler import profile, record_function, ProfilerActivity
+    HAS_PROFILER = True
+except ImportError:
+    HAS_PROFILER = False
+    print("⚠️  torch.profiler not available (PyTorch < 1.8)")
+
 from tqdm import tqdm
 
 # Disable PIL's DecompressionBomb warning (we handle large images safely with transforms)
@@ -373,7 +381,7 @@ def main(args):
     print(f"Train samples: {len(train_dataset)}")
     print(f"Val samples: {len(val_dataset)}")
     
-    # Compute class weights if enabled
+    # Compute class weights
     class_weights_binary = None
     class_weights_coarse = None
     class_weights_fine = None
@@ -417,20 +425,42 @@ def main(args):
     from models.hierarchical_upernet import build_hierarchical_model
     model = build_hierarchical_model(config)
     model = model.to(device)
-
-        # Después de model = build_model(config)
-    dummy_input = torch.randn(1, 3, 256, 256).to(device)
+    
+    # Model validation test
+    model.eval()
+    img_size = config['data']['image_size']
+    dummy_input = torch.randn(1, 3, img_size, img_size).to(device)
     with torch.no_grad():
         features = model.encoder(dummy_input)
         print(f"Encoder features shapes: {[f.shape for f in features]}")
-        logits = model(dummy_input)
-        print(f"Model output shape: {logits.shape}")
+        outputs = model(dummy_input)
+        if isinstance(outputs, dict):
+            print(f"Model output keys: {outputs.keys()}")
+            if 'fine' in outputs:
+                print(f"Fine output shape: {outputs['fine'].shape}")
+        else:
+            print(f"Model output shape: {outputs.shape}")
+    model.train()
     
     # Count parameters
     num_params = sum(p.numel() for p in model.parameters())
     num_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Total parameters: {num_params:,}")
     print(f"Trainable parameters: {num_trainable:,}")
+    
+    # PyTorch 2.0+ Optimization: torch.compile()
+    # DISABLED: Causes linker errors in SLURM environment (cannot find -lcuda)
+    # if hasattr(torch, 'compile') and torch.__version__ >= '2.0':
+    #     print("\n🚀 Enabling torch.compile() optimization...")
+    #     try:
+    #         model = torch.compile(model, mode='reduce-overhead')
+    #         print("   ✅ torch.compile() enabled (expect +15-30% speedup)")
+    #     except Exception as e:
+    #         print(f"   ⚠️  torch.compile() failed: {e}")
+    #         print("   Continuing without compilation")
+    # else:
+    #     print(f"\n⚠️  torch.compile() not available (PyTorch {torch.__version__} < 2.0)")
+    print("\n⚠️  torch.compile() disabled (SLURM compatibility)")
     
     # Create loss function
     criterion = HierarchicalDiceFocalLoss(
@@ -470,9 +500,15 @@ def main(args):
     print(f"Mixed precision: {config['training']['mixed_precision']}")
     print(f"Gradient accumulation: {config['training'].get('gradient_accumulation_steps', 1)}")
     
+    # Performance monitoring
+    monitoring_enabled = config.get('monitoring', {})
+    log_gpu_memory = monitoring_enabled.get('log_gpu_memory', False)
+    log_throughput = monitoring_enabled.get('log_throughput', False)
+    
     best_miou = 0.0
     patience_counter = 0
     start_time = time.time()
+    total_samples_processed = 0
     
     for epoch in range(1, config['training']['epochs'] + 1):
         epoch_start = time.time()
@@ -495,12 +531,29 @@ def main(args):
         
         # Print epoch summary
         epoch_time = time.time() - epoch_start
+        num_samples = len(train_dataset)
+        total_samples_processed += num_samples
+        
         print(f"\nEpoch {epoch}/{config['training']['epochs']} ({epoch_time:.1f}s)")
         print(f"  Train - Loss: {train_metrics['loss']:.4f}")
         print(f"  Val   - Loss: {val_metrics['loss']:.4f}")
         print(f"         mIoU (Binary): {val_metrics['mIoU_binary']:.4f}")
         print(f"         mIoU (Coarse): {val_metrics['mIoU_coarse']:.4f}")
         print(f"         mIoU (Fine):   {val_metrics['mIoU_fine']:.4f}")
+        
+        # Performance metrics
+        if log_throughput:
+            throughput = num_samples / epoch_time
+            print(f"  Throughput: {throughput:.1f} imgs/s")
+            writer.add_scalar('performance/throughput', throughput, epoch)
+        
+        if log_gpu_memory and device.type == 'cuda':
+            vram_allocated = torch.cuda.memory_allocated(device) / 1024**3
+            vram_reserved = torch.cuda.memory_reserved(device) / 1024**3
+            vram_max = torch.cuda.get_device_properties(device).total_memory / 1024**3
+            print(f"  VRAM: {vram_allocated:.2f}GB / {vram_max:.2f}GB ({vram_allocated/vram_max*100:.1f}%)")
+            writer.add_scalar('performance/vram_allocated_gb', vram_allocated, epoch)
+            writer.add_scalar('performance/vram_utilization', vram_allocated/vram_max*100, epoch)
         
         # Log to CSV
         csv_writer.writerow([

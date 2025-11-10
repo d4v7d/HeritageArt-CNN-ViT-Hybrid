@@ -1,0 +1,65 @@
+# POC-5.5: V100 32GB Server-Optimized Configuration
+# CITIC SLURM Cluster: 2× Tesla V100S-PCIE-32GB
+# Optimized for maximum throughput and GPU utilization
+
+# Import base config
+_base_: base_config.yaml
+
+# Override data size for better quality
+data:
+  image_size: 384  # Increased from 256 (better quality, still fits in 32GB)
+
+# Model selection (override in model-specific configs)
+model:
+  encoder: convnext_tiny
+  encoder_weights: imagenet_in1k
+
+# Training optimizations for V100 32GB
+training:
+  batch_size: 48  # Increased from 8 (maximize GPU utilization)
+  gradient_accumulation_steps: 1  # No accumulation needed with large batch
+  mixed_precision: true  # Keep FP16 for speed
+  gradient_checkpointing: false  # Disable (no VRAM constraint, faster training)
+  
+  # Same optimizer settings
+  optimizer:
+    type: AdamW
+    lr: 1e-4
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Same scheduler
+  scheduler:
+    type: CosineAnnealingLR
+    T_max: 50
+    eta_min: 1e-6
+  
+  # Less aggressive early stopping (we have time)
+  early_stopping:
+    patience: 15  # Reduced from 20 (faster validation)
+    min_delta: 0.001
+    mode: max
+  
+  # Class weights (computed once at training start)
+  class_weights:
+    method: inverse_sqrt  # Computed from training data
+
+# Dataloader optimizations for V100
+num_workers: 4  # Reduced from 16 (too many workers causes overhead)
+pin_memory: true
+
+# Logging
+logging:
+  experiment_name: poc55_384px_v100_server
+  log_dir: ./logs/server_384px
+  
+  # Less frequent saving (faster training)
+  save_interval: 10  # Every 10 epochs (vs 5)
+  log_interval: 5    # Every 5 batches (vs 10, more granular)
+
+# Performance monitoring
+monitoring:
+  log_gpu_memory: true      # Log VRAM usage
+  log_throughput: true      # Log images/second
+  log_batch_time: true      # Log time per batch

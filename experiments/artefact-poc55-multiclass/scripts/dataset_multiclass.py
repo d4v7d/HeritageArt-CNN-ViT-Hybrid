@@ -119,7 +119,8 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
             A.VerticalFlip(p=0.4),
             A.Rotate(limit=30, p=0.6, border_mode=0),
             A.RandomResizedCrop(
-                size=(img_size, img_size),  # Changed from height/width
+                height=img_size,
+                width=img_size,
                 scale=(0.7, 1.0),      # 70-100% crop
                 ratio=(0.85, 1.15),    # Slight aspect distortion
                 p=0.8
@@ -189,7 +190,6 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
                 A.ImageCompression(
                     quality_lower=70,
                     quality_upper=95,
-                    compression_type='jpeg',
                     p=0.5
                 ),
                 A.GridDistortion(num_steps=10, distort_limit=0.05, p=0.2),
@@ -228,7 +228,5 @@ def get_multiclass_transforms(config: Dict, mode: str = 'train') -> A.Compose:
     
     return A.Compose(
         transforms_list, 
-        additional_targets={'mask1': 'mask', 'mask2': 'mask'},
-        mask_interpolation=0,  # Nearest neighbor for masks to preserve integer values
-        is_check_shapes=False
+        additional_targets={'mask1': 'mask', 'mask2': 'mask'}
     )

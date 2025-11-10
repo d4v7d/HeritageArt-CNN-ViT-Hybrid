@@ -1,0 +1,10 @@
+Tecnica_DG,MaxViT_Baseline,MaxViT_Mejorado,Ganancia,Costo_Computacional,Status
+Baseline,16.8%,16.8%,0.0%,1x,Completed
+Style_Augmentation,16.8%,18.9%,+2.1%,1.1x,Projected
+Fourier_Domain_Adapt,16.8%,19.4%,+2.6%,1.15x,Projected
+MixUp_Segmentation,16.8%,18.2%,+1.4%,1.2x,Projected
+Deep_CORAL,16.8%,20.1%,+3.3%,1.3x,Projected
+IRM_Regularizer,16.8%,19.7%,+2.9%,1.25x,Projected
+Fishr_Variance_Min,16.8%,21.3%,+4.5%,1.35x,Projected
+TENT_Test_Time_Adapt,16.8%,19.5%,+2.7%,1.05x,Projected
+Combined_Best,16.8%,23.4%,+6.6%,1.5x,Projected

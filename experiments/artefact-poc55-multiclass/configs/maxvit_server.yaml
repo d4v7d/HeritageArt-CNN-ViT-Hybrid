@@ -1,0 +1,11 @@
+# MaxViT-Tiny Configuration for V100 Server
+
+_base_: poc55_server_v100.yaml
+
+model:
+  encoder: maxvit_tiny_tf_384
+  encoder_weights: imagenet
+
+logging:
+  experiment_name: poc55_maxvit_v100_384px
+  log_dir: ./logs/maxvit_v100

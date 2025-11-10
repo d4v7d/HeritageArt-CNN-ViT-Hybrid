@@ -1,0 +1,4 @@
+Modelo,In_Domain_mIoU,LOMO_mIoU,LOContent_mIoU,LOMO_Gap,LOContent_Gap,Generalization_Score
+MaxViT-Tiny,22.02%,16.8%,18.5%,-5.22%,-3.52%,17.65%
+Swin-Tiny,18.48%,13.2%,15.1%,-5.28%,-3.38%,14.15%
+ConvNeXt-Tiny,15.33%,9.8%,11.9%,-5.53%,-3.43%,10.85%

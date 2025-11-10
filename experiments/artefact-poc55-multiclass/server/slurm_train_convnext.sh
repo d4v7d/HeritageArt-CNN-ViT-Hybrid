@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=poc55-convnext
-#SBATCH --output=slurm_logs/convnext_%j.out
-#SBATCH --error=slurm_logs/convnext_%j.err
+#SBATCH --output=/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass/logs/slurm/convnext_%j.out
+#SBATCH --error=/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass/logs/slurm/convnext_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -19,8 +19,12 @@ echo "Start: $(date)"
 echo ""
 
 # Load modules
-module load miniconda3 cuda11.4 gcc11.2
-source activate poc55
+module purge
+module load cuda11.4 gcc11.2
+
+# Initialize and activate conda
+source /opt/modules/miniconda3/etc/profile.d/conda.sh
+conda activate poc55
 
 # Set environment variables
 export PYTHONUNBUFFERED=1
@@ -32,7 +36,7 @@ export CUDA_LAUNCH_BLOCKING=1  # Better error messages
 cd ~/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass
 
 # Create log directory
-mkdir -p slurm_logs
+mkdir -p logs/slurm
 
 # GPU Info
 echo "🖥️ GPU Information:"

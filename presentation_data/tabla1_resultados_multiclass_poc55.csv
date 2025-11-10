@@ -1,0 +1,4 @@
+Modelo,Tipo,mIoU_Fine,mIoU_Coarse,mIoU_Binary,Parametros_M,Throughput_imgs_s,VRAM_Usage_GB,Training_Time_h
+MaxViT-Tiny,Hybrid (CNN+ViT),22.02%,55.70%,71.86%,39.2,4.2,0.84,53
+Swin-Tiny,Transformer (ViT),18.48%,56.86%,68.14%,37.4,3.8,0.91,53
+ConvNeXt-Tiny,CNN,15.33%,49.84%,65.87%,37.7,4.1,0.78,53
