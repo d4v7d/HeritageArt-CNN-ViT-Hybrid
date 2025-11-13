@@ -1,9 +1,9 @@
 # POC-5.8: Swin-Tiny + DeepLabV3+
-# Transformer baseline
+# ViT Transformer baseline
 
 model:
   architecture: DeepLabV3Plus
-  encoder_name: timm-swin_tiny_patch4_window7_224  # Swin-Tiny from timm
+  encoder_name: tu-swin_tiny_patch4_window7_224  # Swin-Tiny from timm (29.0M params)
   encoder_weights: imagenet
   in_channels: 3
   classes: 16
@@ -11,14 +11,14 @@ model:
 
 data:
   data_dir: ../data/artefact
-  image_size: 384
+  image_size: 224  # Swin-Tiny tamaño nativo (patch4_window7_224)
   num_workers: 16
   use_augmented: true
   use_preload: true
   preload_to_gpu: false
 
 training:
-  batch_size: 64
+  batch_size: 96  # Aumentado de 64 (imagen más pequeña 224px permite más batch)
   epochs: 50
   learning_rate: 0.001
   weight_decay: 0.01
@@ -49,13 +49,13 @@ dataloader:
 
 augmentation:
   train:
-    - Resize: [384, 384]
+    - Resize: [224, 224]  # Swin-Tiny tamaño nativo
     - HorizontalFlip: {p: 0.5}
     - VerticalFlip: {p: 0.3}
     - RandomRotate90: {p: 0.3}
     - Normalize: {mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225]}
   val:
-    - Resize: [384, 384]
+    - Resize: [224, 224]
     - Normalize: {mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225]}
 
 logging:

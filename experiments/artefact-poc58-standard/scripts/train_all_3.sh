@@ -23,9 +23,9 @@ echo "2️⃣  Swin-Tiny..."
 JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 scripts/slurm_train.sh ../configs/swin_tiny.yaml)
 echo "   Job ID: $JOB2"
 
-# Job 3: MaxViT-Tiny (depends on Job 2)
-echo "3️⃣  MaxViT-Tiny..."
-JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 scripts/slurm_train.sh ../configs/maxvit_tiny.yaml)
+# Job 3: MobileViTv2-200 (depends on Job 2)
+echo "3️⃣  MobileViTv2-200 (Hybrid CNN+ViT)..."
+JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 scripts/slurm_train.sh ../configs/mobilevit_v2_200.yaml)
 echo "   Job ID: $JOB3"
 
 echo ""
@@ -35,10 +35,10 @@ echo "================================================"
 echo ""
 echo "Job chain: $JOB1 → $JOB2 → $JOB3"
 echo ""
-echo "Estimated completion time: ~50-55 minutes"
-echo "  - ConvNeXt: ~15 min"
-echo "  - Swin:     ~16 min"
-echo "  - MaxViT:   ~18 min"
+echo "Estimated completion time: ~45-50 minutes"
+echo "  - ConvNeXt-Tiny:     ~15-16 min"
+echo "  - Swin-Tiny:         ~15-16 min"
+echo "  - MobileViTv2-200:   ~12-14 min"
 echo ""
 echo "Monitor with:"
 echo "  squeue -u $USER"

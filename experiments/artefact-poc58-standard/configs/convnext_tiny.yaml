@@ -1,9 +1,9 @@
 # POC-5.8: ConvNeXt-Tiny + DeepLabV3+
-# Comparing against ResNet50 baseline
+# CNN moderno comparando contra ResNet50 baseline
 
 model:
   architecture: DeepLabV3Plus
-  encoder_name: timm-convnext_tiny  # ConvNeXt-Tiny from timm
+  encoder_name: tu-convnext_tiny    # ConvNeXt-Tiny from timm (29.3M params)
   encoder_weights: imagenet         # Pretrained
   in_channels: 3
   classes: 16
@@ -64,6 +64,6 @@ logging:
   save_last: true
 
 # Expected metrics:
-# - mIoU: ~28-30% (CNN baseline, better than ResNet50)
-# - Throughput: ~120 imgs/s (similar to ResNet50)
-# - Training time: ~14-15 min (50 epochs)
+# - mIoU: ~28-30% (CNN moderno, mejor que ResNet50)
+# - Throughput: ~110-120 imgs/s (similar a ResNet50)
+# - Training time: ~15-16 min (50 epochs)

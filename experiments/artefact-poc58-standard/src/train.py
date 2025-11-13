@@ -332,6 +332,11 @@ def main():
     best_miou = 0.0
     num_classes = config['model']['classes']
     
+    # Create checkpoint directory
+    model_name = f"{config['model']['architecture']}_{config['model']['encoder_name']}"
+    checkpoint_dir = Path(f'../logs/{model_name}')
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    
     for epoch in range(1, num_epochs + 1):
         # Train
         train_metrics = train_epoch(
@@ -357,10 +362,20 @@ def main():
         print(f"  Throughput: {train_metrics['throughput']:.1f} imgs/s")
         print(f"  VRAM: {vram_used:.2f}GB / {vram_total:.2f}GB ({vram_pct:.1f}%)")
         
-        # Save best
+        # Save best checkpoint
         if val_metrics['miou'] > best_miou:
             best_miou = val_metrics['miou']
             print(f"  ✅ New best mIoU: {best_miou:.4f}")
+            
+            # Save checkpoint
+            checkpoint = {
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'best_miou': best_miou,
+                'config': config
+            }
+            torch.save(checkpoint, checkpoint_dir / 'best_model.pth')
         
         print()
     
