@@ -22,9 +22,13 @@ module load miniconda3
 source /opt/modules/miniconda3/etc/profile.d/conda.sh
 conda activate poc55
 
+# Restrict CUDA visibility to assigned GPU only
+export CUDA_VISIBLE_DEVICES=$SLURM_JOB_GPUS
+
 echo "Python: $(which python)"
 echo "PyTorch: $(python -c 'import torch; print(torch.__version__)')"
 echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "None")')"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 echo ""
 
 # Install SMP if needed
