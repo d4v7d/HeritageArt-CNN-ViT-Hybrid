@@ -14,17 +14,14 @@ MODELS=("convnext_tiny" "swin_tiny" "coatnet_0")
 for model in "${MODELS[@]}"; do
     echo "📊 Evaluating: $model"
     
-    checkpoint="../logs/DeepLabV3Plus_${model}/best_model.pth"
+    # Updated to match current naming: Unet_tu-{encoder}
+    checkpoint="../logs/Unet_tu-${model}/best_model.pth"
     
     # Check if checkpoint exists
     if [ ! -f "$checkpoint" ]; then
-        # Try alternative naming
-        checkpoint="../logs/${model}/best_model.pth"
-        if [ ! -f "$checkpoint" ]; then
-            echo "   ⚠️  Checkpoint not found, skipping"
-            echo ""
-            continue
-        fi
+        echo "   ⚠️  Checkpoint not found: $checkpoint"
+        echo ""
+        continue
     fi
     
     # Run evaluation
@@ -37,5 +34,5 @@ echo "================================================"
 echo "✅ Evaluation Complete"
 echo "================================================"
 echo ""
-echo "Results saved in logs/*/evaluation/"
+echo "Results saved in logs/Unet_tu-*/evaluation/"
 echo ""
