@@ -65,8 +65,8 @@ echo "Config: $CONFIG_FILE"
 echo "Test epoch: ${TEST_EPOCH:-No}"
 echo ""
 
-# Run training
-python train.py --config $CONFIG_FILE $TEST_EPOCH
+# Run training with unbuffered output
+python -u train.py --config $CONFIG_FILE $TEST_EPOCH
 
 EXIT_CODE=$?
 
