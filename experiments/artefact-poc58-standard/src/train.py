@@ -28,6 +28,27 @@ from preload_dataset import create_preloaded_dataloaders
 from model_factory import create_model  # Use custom factory for timm encoders
 
 
+class ModelWithLoss(nn.Module):
+    """
+    Wrapper that combines model + loss for DataParallel.
+    Each GPU computes its own loss, then they are averaged.
+    """
+    def __init__(self, model, criterion):
+        super().__init__()
+        self.model = model
+        self.criterion = criterion
+    
+    def forward(self, images, masks=None):
+        predictions = self.model(images)
+        if masks is not None:
+            # Training mode: return loss
+            loss = self.criterion(predictions, masks)
+            return loss, predictions
+        else:
+            # Inference mode: return predictions only
+            return predictions
+
+
 def train_epoch(
     model,
     train_loader,
@@ -36,7 +57,8 @@ def train_epoch(
     scheduler,
     scaler: GradScaler,
     device: torch.device,
-    use_amp: bool = True
+    use_amp: bool = True,
+    use_dataparallel: bool = False
 ) -> dict:
     """
     Train one epoch with AMP
@@ -55,11 +77,20 @@ def train_epoch(
         # Forward with AMP
         if use_amp:
             with autocast():
+                if use_dataparallel:
+                    # Model wrapper returns (loss, predictions)
+                    loss, predictions = model(images, masks)
+                    loss = loss.mean()  # Average losses from all GPUs
+                else:
+                    predictions = model(images)
+                    loss = criterion(predictions, masks)
+        else:
+            if use_dataparallel:
+                loss, predictions = model(images, masks)
+                loss = loss.mean()
+            else:
                 predictions = model(images)
                 loss = criterion(predictions, masks)
-        else:
-            predictions = model(images)
-            loss = criterion(predictions, masks)
         
         # Backward with gradient scaling
         optimizer.zero_grad(set_to_none=True)
@@ -95,7 +126,8 @@ def validate_epoch(
     criterion,
     device: torch.device,
     num_classes: int,
-    use_amp: bool = True
+    use_amp: bool = True,
+    use_dataparallel: bool = False
 ) -> dict:
     """
     Validate with IoU computation
@@ -117,10 +149,17 @@ def validate_epoch(
             # Forward with AMP
             if use_amp:
                 with autocast():
-                    predictions = model(images)
+                    if use_dataparallel:
+                        # Inference mode: no masks, returns predictions only
+                        predictions = model(images)
+                    else:
+                        predictions = model(images)
                     loss = criterion(predictions, masks)
             else:
-                predictions = model(images)
+                if use_dataparallel:
+                    predictions = model(images)
+                else:
+                    predictions = model(images)
                 loss = criterion(predictions, masks)
             
             epoch_loss += loss.item()
@@ -252,15 +291,6 @@ def main():
     print("Creating model...")
     model = create_model(config).to(device)
     
-    # Multi-GPU support
-    if torch.cuda.device_count() > 1:
-        print(f"Using {torch.cuda.device_count()} GPUs with DataParallel")
-        model = torch.nn.DataParallel(model)
-    
-    num_params = sum(p.numel() for p in model.parameters())
-    print(f"Parameters: {num_params:,}")
-    print()
-    
     # Loss function (SMP DiceLoss)
     print("Creating loss function...")
     criterion = smp.losses.DiceLoss(
@@ -268,6 +298,19 @@ def main():
         smooth=config['loss'].get('smooth', 1.0)
     )
     print(f"Loss: {config['loss']['type'].upper()} ({config['loss']['mode']})")
+    print()
+    
+    # Multi-GPU support with loss integration
+    use_dataparallel = False
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs with DataParallel")
+        # Wrap model with loss for distributed computation
+        model = ModelWithLoss(model, criterion)
+        model = torch.nn.DataParallel(model)
+        use_dataparallel = True
+    
+    num_params = sum(p.numel() for p in model.parameters())
+    print(f"Parameters: {num_params:,}")
     print()
     
     # Optimizer
@@ -309,13 +352,15 @@ def main():
         # Train
         train_metrics = train_epoch(
             model, train_loader, criterion, optimizer, scheduler, scaler,
-            device, use_amp=config['training']['mixed_precision']
+            device, use_amp=config['training']['mixed_precision'],
+            use_dataparallel=use_dataparallel
         )
         
         # Validate
         val_metrics = validate_epoch(
             model, val_loader, criterion, device, num_classes,
-            use_amp=config['training']['mixed_precision']
+            use_amp=config['training']['mixed_precision'],
+            use_dataparallel=use_dataparallel
         )
         
         # GPU memory
@@ -335,10 +380,11 @@ def main():
             best_miou = val_metrics['miou']
             print(f"  ✅ New best mIoU: {best_miou:.4f}")
             
-            # Save checkpoint
+            # Save checkpoint (extract model from DataParallel wrapper if needed)
+            model_to_save = model.module.model if use_dataparallel else model
             checkpoint = {
                 'epoch': epoch,
-                'model_state_dict': model.state_dict(),
+                'model_state_dict': model_to_save.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'best_miou': best_miou,
                 'config': config
