@@ -22,19 +22,13 @@ module load miniconda3
 source /opt/modules/miniconda3/etc/profile.d/conda.sh
 conda activate poc55
 
-# Restrict CUDA visibility to assigned GPU only
-# SLURM sets CUDA_VISIBLE_DEVICES automatically, but we'll be explicit
-if [ -n "$SLURM_JOB_GPUS" ]; then
-    export CUDA_VISIBLE_DEVICES=$SLURM_JOB_GPUS
-elif [ -n "$SLURM_STEP_GPUS" ]; then
-    export CUDA_VISIBLE_DEVICES=$SLURM_STEP_GPUS
-fi
+# Force single GPU visibility
+# SLURM may assign multiple GPUs, but we only want the first one
+export CUDA_VISIBLE_DEVICES=0
 
 echo "Python: $(which python)"
 echo "PyTorch: $(python -c 'import torch; print(torch.__version__)')"
 echo "GPU: $(python -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "None")')"
-echo "SLURM_JOB_GPUS: ${SLURM_JOB_GPUS:-not set}"
-echo "CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-not set}"
 echo "Visible GPU count: $(python -c 'import torch; print(torch.cuda.device_count())')"
 echo ""
 
