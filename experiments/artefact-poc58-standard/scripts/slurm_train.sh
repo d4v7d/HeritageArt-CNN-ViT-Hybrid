@@ -39,14 +39,21 @@ cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-st
 echo "Start time: $(date)"
 echo ""
 
-# Determine config file
-CONFIG_FILE=${1:-../configs/unet_convnext_batch128.yaml}
+# Parse arguments
+CONFIG_FILE=""
 TEST_EPOCH=""
 
-# Check for flags
-if [ "$1" == "--test-epoch" ] || [ "$2" == "--test-epoch" ]; then
-    TEST_EPOCH="--test-epoch"
-    CONFIG_FILE=${2:-../configs/unet_convnext_batch128.yaml}
+for arg in "$@"; do
+    if [ "$arg" == "--test-epoch" ]; then
+        TEST_EPOCH="--test-epoch"
+    else
+        CONFIG_FILE="$arg"
+    fi
+done
+
+# Default config if not provided
+if [ -z "$CONFIG_FILE" ]; then
+    CONFIG_FILE="../configs/resnet50.yaml"
 fi
 
 echo "Config: $CONFIG_FILE"
