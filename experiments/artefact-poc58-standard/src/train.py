@@ -25,45 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from dataset import create_dataloaders, compute_class_weights
 from preload_dataset import create_preloaded_dataloaders
-
-
-def create_model(config: dict) -> nn.Module:
-    """
-    Create SMP model from config
-    
-    Args:
-        config: Model configuration dict
-    
-    Returns:
-        SMP model
-    """
-    model_cfg = config['model']
-    
-    # Map architecture name to SMP class
-    ARCHITECTURES = {
-        'unet': smp.Unet,
-        'unetplusplus': smp.UnetPlusPlus,
-        'deeplabv3': smp.DeepLabV3,
-        'deeplabv3plus': smp.DeepLabV3Plus,
-        'fpn': smp.FPN,
-    }
-    
-    arch_name = model_cfg['architecture'].lower()
-    if arch_name not in ARCHITECTURES:
-        raise ValueError(f"Unknown architecture: {arch_name}")
-    
-    ModelClass = ARCHITECTURES[arch_name]
-    
-    # Create model
-    model = ModelClass(
-        encoder_name=model_cfg['encoder_name'],
-        encoder_weights=model_cfg.get('encoder_weights', 'imagenet'),
-        in_channels=model_cfg.get('in_channels', 3),
-        classes=model_cfg['classes'],
-        activation=model_cfg.get('activation', None)
-    )
-    
-    return model
+from model_factory import create_model  # Use custom factory for timm encoders
 
 
 def train_epoch(
