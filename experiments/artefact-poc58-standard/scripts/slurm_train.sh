@@ -58,7 +58,7 @@ done
 
 # Default config if not provided
 if [ -z "$CONFIG_FILE" ]; then
-    CONFIG_FILE="/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-standard/configs/resnet50.yaml"
+    CONFIG_FILE="/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-standard/configs/convnext_tiny.yaml"
 fi
 
 echo "Config: $CONFIG_FILE"

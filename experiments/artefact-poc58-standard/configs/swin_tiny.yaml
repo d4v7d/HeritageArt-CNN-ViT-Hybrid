@@ -2,7 +2,7 @@
 # ViT Transformer baseline
 
 model:
-  architecture: DeepLabV3Plus
+  architecture: Unet
   encoder_name: tu-swin_tiny_patch4_window7_224  # Swin-Tiny from timm (29.0M params)
   encoder_weights: imagenet
   in_channels: 3

@@ -2,7 +2,7 @@
 # CNN moderno comparando contra ResNet50 baseline
 
 model:
-  architecture: DeepLabV3Plus
+  architecture: Unet
   encoder_name: tu-convnext_tiny    # ConvNeXt-Tiny from timm (29.3M params)
   encoder_weights: imagenet         # Pretrained
   in_channels: 3

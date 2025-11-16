@@ -8,8 +8,8 @@ echo ""
 
 cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-standard/src
 
-# Models to evaluate
-MODELS=("resnet50" "convnext_tiny" "swin_tiny" "maxvit_tiny")
+# Models to evaluate (POC-5.8: CNN vs ViT vs Hybrid)
+MODELS=("convnext_tiny" "swin_tiny" "coatnet_0")
 
 for model in "${MODELS[@]}"; do
     echo "📊 Evaluating: $model"
