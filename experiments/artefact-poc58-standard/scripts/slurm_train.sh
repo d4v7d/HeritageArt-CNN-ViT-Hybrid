@@ -47,13 +47,18 @@ for arg in "$@"; do
     if [ "$arg" == "--test-epoch" ]; then
         TEST_EPOCH="--test-epoch"
     else
-        CONFIG_FILE="$arg"
+        # Convert relative path to absolute if needed
+        if [[ "$arg" == ../* ]] || [[ "$arg" == configs/* ]]; then
+            CONFIG_FILE="/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-standard/$arg"
+        else
+            CONFIG_FILE="$arg"
+        fi
     fi
 done
 
 # Default config if not provided
 if [ -z "$CONFIG_FILE" ]; then
-    CONFIG_FILE="../configs/resnet50.yaml"
+    CONFIG_FILE="/opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc58-standard/configs/resnet50.yaml"
 fi
 
 echo "Config: $CONFIG_FILE"
