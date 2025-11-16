@@ -18,7 +18,7 @@ data:
   preload_to_gpu: false
 
 training:
-  batch_size: 128  # Sweet spot: 2x original, should use ~15-20GB VRAM
+  batch_size: 96  # Safe middle ground (64 → 96, +50% throughput)
   epochs: 50
   learning_rate: 0.001
   weight_decay: 0.01
