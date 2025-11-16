@@ -14,7 +14,7 @@ data:
   image_size: 224  # Swin-Tiny tamaño nativo (patch4_window7_224)
   num_workers: 16
   use_augmented: true
-  use_preload: true
+  use_preload: false  # Disabled for fast testing (enable for 50 epochs)
   preload_to_gpu: false
 
 training:
