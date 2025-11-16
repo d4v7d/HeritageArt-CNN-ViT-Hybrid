@@ -18,7 +18,7 @@ data:
   preload_to_gpu: false
 
 training:
-  batch_size: 96  # Safe middle ground (64 → 96, +50% throughput)
+  batch_size: 192  # 2 GPUs with DataParallel (96 per GPU)
   epochs: 50
   learning_rate: 0.001
   weight_decay: 0.01

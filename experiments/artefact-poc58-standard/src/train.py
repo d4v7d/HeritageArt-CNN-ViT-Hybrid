@@ -251,6 +251,12 @@ def main():
     # Create model
     print("Creating model...")
     model = create_model(config).to(device)
+    
+    # Multi-GPU support
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs with DataParallel")
+        model = torch.nn.DataParallel(model)
+    
     num_params = sum(p.numel() for p in model.parameters())
     print(f"Parameters: {num_params:,}")
     print()
