@@ -14,7 +14,7 @@ data:
   image_size: 384
   num_workers: 16
   use_augmented: true
-  use_preload: false  # Disabled for fast testing (enable for 50 epochs)
+  use_preload: true  # Enabled for 50-epoch training (30min preload)
   preload_to_gpu: false
 
 training:
