@@ -10,7 +10,7 @@ model:
   activation: null
 
 data:
-  data_dir: ../data/artefact
+  data_dir: ../common-data/artefact_augmented
   image_size: 224  # Swin-Tiny tamaño nativo (patch4_window7_224)
   num_workers: 16
   use_augmented: true

@@ -1,0 +1,105 @@
+# POC-5.9 Base Configuration
+# Shared settings across all encoders (ConvNeXt, SegFormer, MaxViT)
+
+# Data configuration
+data:
+  data_dir: "../common-data/artefact_augmented"
+  image_size: 384
+  num_classes: 16
+  ignore_index: 255
+  num_workers: 8  # GPU optimized (was 4 for stability)
+  use_augmented: true
+  use_preload: false  # Set to true if enough RAM
+  
+  # Train/val split (overridden by cross-validation)
+  train_split: 0.8
+  val_split: 0.2
+  seed: 42
+
+# Model configuration (overridden by encoder-specific configs)
+model:
+  architecture: "Unet"
+  encoder_name: "tu-convnext_tiny"  # Default, overridden
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 16
+  activation: null  # No activation (logits output)
+  
+  # Decoder settings (shared across all models)
+  decoder_channels: [256, 128, 64, 32, 16]
+  decoder_attention_type: null
+
+# Training configuration
+training:
+  batch_size: 96  # GPU optimized (was 4 for CPU testing)
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.01
+  mixed_precision: true
+  gradient_clip: 1.0
+  accumulation_steps: 1
+  
+  # Random seed for reproducibility
+  seed: 42
+  deterministic: true
+
+# Optimizer configuration
+optimizer:
+  type: "adamw"
+  betas: [0.9, 0.999]
+  eps: 1.0e-8
+
+# Learning rate scheduler
+scheduler:
+  type: "onecycle"
+  max_lr: 0.001
+  pct_start: 0.3
+  anneal_strategy: "cos"
+  div_factor: 25.0
+  final_div_factor: 10000.0
+
+# Loss configuration
+loss:
+  type: "dice_focal"
+  dice_weight: 0.5
+  focal_weight: 0.5
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  smooth: 1.0
+  class_weights_method: "inverse_sqrt"  # 'inverse', 'inverse_sqrt', 'effective_samples', or null
+
+# Early stopping
+early_stopping:
+  enabled: true
+  patience: 10
+  min_delta: 0.001
+  metric: "miou"  # or 'loss'
+  mode: "max"  # 'max' for mIoU, 'min' for loss
+
+# Cross-validation
+cross_validation:
+  enabled: false  # Set to true for K-fold CV
+  n_folds: 3
+  seed: 42
+  
+# Evaluation
+evaluation:
+  tta_enabled: false  # Test-time augmentation (slow but improves results)
+  tta_transforms: ["identity", "hflip", "vflip", "rot90"]
+  save_predictions: true
+  num_visualizations: 60  # Top 30 + worst 30
+
+# Logging
+logging:
+  log_dir: "logs"
+  save_best: true
+  save_last: true
+  tensorboard: true
+  log_interval: 10  # Log every N batches
+  
+# Hardware
+hardware:
+  device: "cuda"
+  num_gpus: 1
+  pin_memory: true
+  benchmark: true  # cudnn.benchmark

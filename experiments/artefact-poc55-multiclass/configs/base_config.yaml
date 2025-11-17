@@ -6,7 +6,7 @@ seed: 42
 
 # Data configuration
 data:
-  root: /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc55-multiclass/data/artefact
+  root: /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/common-data/artefact_augmented
   image_size: 256  # Laptop-optimized (vs 512)
   train_val_split: 0.8
   ignore_index: 255

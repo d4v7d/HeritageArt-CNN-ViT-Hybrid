@@ -1,0 +1,32 @@
+# POC-5.9 MaxViT-Tiny Configuration  
+# Hybrid Family - Conv + Attention interleaving
+
+# Inherit base config
+_base_: "base_config.yaml"
+
+# Model override - Hybrid encoder
+model:
+  architecture: "Unet"
+  encoder_name: "tu-maxvit_tiny_tf_224"  # Can work at 384px despite name
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 16
+  activation: null
+  
+  # Architecture family metadata
+  family: "hybrid"
+  mechanism: "Multi-axis attention (block conv + grid attention)"
+  
+# Data
+data:
+  image_size: 384  # MaxViT supports flexible resolutions
+
+# Training (same as base)
+training:
+  batch_size: 96
+  epochs: 50
+
+# Expected performance
+# POC-5.5 (multi-head): 22.02% mIoU fine (best among 3 models)
+# POC-5.9 (single-head, better loss, CV): 29.5 ± 1.0% mIoU
+# Should be competitive with SegFormer, may be second best
