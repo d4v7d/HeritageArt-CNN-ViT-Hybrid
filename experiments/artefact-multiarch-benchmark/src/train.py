@@ -8,7 +8,10 @@ Key features:
 - Minimal code, maximum performance
 """
 
+# Force single GPU BEFORE importing torch
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 import sys
 import yaml
 import argparse
@@ -71,7 +74,8 @@ def train_epoch(
     epoch_loss = 0.0
     start_time = time.time()
     
-    for images, masks in train_loader:
+    print(f"  🔄 Training: processing {len(train_loader)} batches...")
+    for batch_idx, (images, masks) in enumerate(train_loader, 1):
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
         
@@ -109,6 +113,10 @@ def train_epoch(
         
         # Accumulate loss
         epoch_loss += loss.detach().item()
+        
+        # Progress indicator every 5 batches
+        if batch_idx % 5 == 0 or batch_idx == 1:
+            print(f"    Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
     
     elapsed = time.time() - start_time
     avg_loss = epoch_loss / len(train_loader)
@@ -142,8 +150,9 @@ def validate_epoch(
     all_targets = []
     epoch_loss = 0.0
     
+    print(f"  🔍 Validating: processing {len(val_loader)} batches...")
     with torch.no_grad():
-        for images, masks in val_loader:
+        for batch_idx, (images, masks) in enumerate(val_loader, 1):
             images = images.to(device, non_blocking=True)
             masks = masks.to(device, non_blocking=True)
             
@@ -169,6 +178,10 @@ def validate_epoch(
             preds = predictions.argmax(dim=1)
             all_preds.append(preds)
             all_targets.append(masks)
+            
+            # Progress indicator
+            if batch_idx % 2 == 0 or batch_idx == 1:
+                print(f"    Batch {batch_idx}/{len(val_loader)}")
     
     # Compute IoU (vectorized on GPU)
     all_preds = torch.cat(all_preds, dim=0)
@@ -252,6 +265,7 @@ def main():
     print(f"Device: {device}")
     if torch.cuda.is_available():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"Visible GPU count: {torch.cuda.device_count()}")
     print(f"Architecture: {config['model']['architecture']}")
     print(f"Encoder: {config['model']['encoder_name']}")
     print(f"Batch size: {config['training']['batch_size']}")
@@ -295,16 +309,22 @@ def main():
     
     # Load pre-computed class weights from metadata (POC-5.9 optimization)
     print("Loading class weights...")
-    class_weights_path = Path(config['data']['data_dir']) / 'class_weights.json'
+    
+    # Check for custom weights file in config (POC-5.9-v2 improvement)
+    weights_filename = config['loss'].get('class_weights_file', 'class_weights.json')
+    class_weights_path = Path(config['data']['data_dir']) / weights_filename
+    
     if class_weights_path.exists():
         import json
         with open(class_weights_path) as f:
             weights_data = json.load(f)
         class_weights = torch.tensor(weights_data['weights'], dtype=torch.float32).to(device)
-        print(f"  ✅ Loaded from: {class_weights_path.name}")
-        print(f"  Method: {weights_data['method']}, Images: {weights_data['num_images']}")
+        print(f"  ✅ Loaded from: {weights_filename}")
+        method = weights_data.get('method', 'unknown')
+        num_images = weights_data.get('num_images', weights_data.get('images', 'N/A'))
+        print(f"  Method: {method}, Images: {num_images}")
     else:
-        print(f"  ⚠️  Pre-computed weights not found, using uniform weights")
+        print(f"  ⚠️  Pre-computed weights not found ({weights_filename}), using uniform weights")
         class_weights = None
     
     # Loss function (POC-5.9: DiceFocalLoss with class weights)
@@ -377,7 +397,11 @@ def main():
     checkpoint_dir = Path(f'../logs/{model_name}')
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
+    print(f"🚀 Starting epoch loop (1 to {num_epochs})...")
+    print()
     for epoch in range(1, num_epochs + 1):
+        print(f"\n📅 EPOCH {epoch}/{num_epochs}")
+        print("="*60)
         # Train
         train_metrics = train_epoch(
             model, train_loader, criterion, optimizer, scheduler, scaler,

@@ -18,21 +18,18 @@ data:
   preload_to_gpu: false
 
 training:
-  batch_size: 48  # Reduced for MaxViT (more VRAM intensive)
+  batch_size: 48  # Reduced from 96 - Hybrid attention requires more memory than CNN
   epochs: 50
-  learning_rate: 0.001
+  learning_rate: 0.0005  # Scaled: 0.001 × (48/96) for batch size adjustment
   weight_decay: 0.01
   mixed_precision: true
   gradient_clip: 1.0
 
 loss:
-  type: dice_focal  # POC-5.9: Enhanced loss
+  type: dice  # Winner: Dice + balanced weights (27.66% mIoU ConvNeXt)
   mode: multiclass
   smooth: 1.0
-  dice_weight: 0.5
-  focal_weight: 0.5
-  focal_gamma: 2.0
-  focal_alpha: 0.25
+  class_weights_file: "class_weights_balanced.json"  # Expected: +1-2% vs ConvNeXt
 
 optimizer:
   type: adamw
@@ -40,7 +37,7 @@ optimizer:
 
 scheduler:
   type: onecycle
-  max_lr: 0.001
+  max_lr: 0.0005  # Matches training.learning_rate
   pct_start: 0.3
   anneal_strategy: cos
 

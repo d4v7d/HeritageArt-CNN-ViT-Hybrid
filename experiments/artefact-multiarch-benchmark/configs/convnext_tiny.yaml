@@ -26,13 +26,10 @@ training:
   gradient_clip: 1.0
 
 loss:
-  type: dice_focal  # POC-5.9: Enhanced loss
+  type: dice  # Winner: Dice + balanced weights (27.66% mIoU)
   mode: multiclass
   smooth: 1.0
-  dice_weight: 0.5
-  focal_weight: 0.5
-  focal_gamma: 2.0
-  focal_alpha: 0.25
+  class_weights_file: "class_weights_balanced.json"  # Use balanced weights
 
 optimizer:
   type: adamw
@@ -67,7 +64,7 @@ logging:
   save_best: true
   save_last: true
 
-# Expected metrics:
-# - mIoU: ~28-30% (CNN moderno, mejor que ResNet50)
-# - Throughput: ~110-120 imgs/s (similar a ResNet50)
+# Expected metrics (based on test results):
+# - mIoU: ~28% (27.66% with balanced weights, ConvNeXt baseline)
+# - Throughput: ~110-120 imgs/s 
 # - Training time: ~15-16 min (50 epochs)

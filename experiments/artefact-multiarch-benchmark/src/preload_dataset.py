@@ -239,3 +239,93 @@ def create_preloaded_dataloaders(
     
     return train_loader, val_loader
 
+
+def create_val_only_dataloader(
+    data_root: str,
+    image_size: int = 384,
+    batch_size: int = 64,
+    num_workers: int = 4,
+    use_augmented: bool = False,
+    seed: int = 42
+) -> DataLoader:
+    """
+    Create ONLY validation dataloader with RAM pre-loading.
+    Optimized for evaluation - doesn't load training set.
+    
+    Args:
+        data_root: Root directory with 'images' and 'annotations' subdirs
+        image_size: Target image size (square)
+        batch_size: Batch size for dataloader
+        num_workers: Number of workers (reduced since data in RAM)
+        use_augmented: Use augmented dataset
+        seed: Random seed for split reproducibility
+    
+    Returns:
+        val_loader: Validation DataLoader (pre-loaded)
+    """
+    data_root = Path(data_root)
+    
+    # Determine which dataset to use
+    if use_augmented:
+        print(f"📦 Using augmented dataset: {data_root}")
+    else:
+        print(f"📦 Using original dataset: {data_root}")
+    
+    # Get image paths
+    image_dir = data_root / 'images'
+    mask_dir = data_root / 'annotations'
+    
+    image_paths = sorted(
+        list(image_dir.glob('*.png')) +
+        list(image_dir.glob('*.jpg'))
+    )
+    mask_paths = [mask_dir / img.name for img in image_paths]
+    
+    # Filter existing masks
+    mask_paths = [m for m in mask_paths if m.exists()]
+    image_paths = image_paths[:len(mask_paths)]
+    
+    print(f"📊 Found {len(image_paths)} images")
+    
+    # Train/val split (80/20) - SAME seed as training for consistency
+    np.random.seed(seed)
+    indices = np.random.permutation(len(image_paths))
+    split_idx = int(len(indices) * 0.8)
+    
+    # Only get validation indices
+    val_indices = indices[split_idx:]
+    
+    val_images = [str(image_paths[i]) for i in val_indices]
+    val_masks = [str(mask_paths[i]) for i in val_indices]
+    
+    print(f"📊 Validation: {len(val_images)} images (skipping train for evaluation)")
+    
+    # Validation transform (no augmentation)
+    val_transform = A.Compose([
+        A.Resize(image_size, image_size),
+        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ToTensorV2()
+    ])
+    
+    # Create pre-loaded validation dataset ONLY
+    val_dataset = PreloadedArtefactDataset(
+        val_images, val_masks, val_transform, preload_to_gpu=False
+    )
+    
+    # DataLoader
+    effective_workers = max(2, num_workers // 2)
+    
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=effective_workers,
+        pin_memory=True,
+        persistent_workers=effective_workers > 0,
+        prefetch_factor=2 if effective_workers > 0 else None
+    )
+    
+    print(f"⚙️  DataLoader workers: {effective_workers}")
+    
+    return val_loader
+
