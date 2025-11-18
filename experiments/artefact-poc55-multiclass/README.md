@@ -1,38 +1,31 @@
-# POC-5.5: Multiclass Hierarchical Segmentation (Multi-Environment)
+# POC-5.5: Multiclass Hierarchical Segmentation (Docker-Only)
 
 **Created**: October 26, 2025  
-**Updated**: November 7, 2025  
-**Status**: ✅ Multi-environment ready (Docker + SLURM)  
-**Environments**: 
-- 🐳 Docker (Local laptop: RTX 3050 6GB)
-- 🖥️ SLURM (CITIC Server: Tesla V100)
+**Updated**: November 17, 2025 (Cleaned to Docker-only)  
+**Status**: ✅ Docker-ready (Historical reference)  
+**Environment**: 🐳 Docker (Local laptop: RTX 3050 6GB)
+
+## ⚠️ Historical Note
+
+This is the **Docker-only version** of POC-5.5, preserved as a reference for:
+- Hierarchical Multi-Task Learning (3-head architecture)
+- Laptop-optimized training (256px, 6GB VRAM)
+- Local Docker workflow for heritage segmentation
+
+**SLURM Support**: Removed (broken scripts). For working SLURM infrastructure, see:
+- **POC-5.8**: Standard segmentation with optimized SLURM
+- **POC-5.9**: Production multi-architecture benchmark
 
 ## Objective
 
-Validate multiclass 16-class segmentation with **Hierarchical Multi-Task Learning** (Innovation #1) on both laptop (Docker) and server (SLURM) environments.
+Validate multiclass 16-class segmentation with **Hierarchical Multi-Task Learning** (Innovation #1) on local Docker environment.
 
 ---
 
 ## 🚀 QUICK START
 
-### **Smart Router (Auto-detects environment)**
+### **🐳 Docker Workflow**
 
-```bash
-# Check detected environment
-make env
-
-# Works on BOTH Docker and SLURM!
-make help           # Show available commands
-make verify-dataset # Check dataset
-make download       # Download ARTeFACT dataset
-make train-convnext # Train ConvNeXt-Tiny
-make train-all      # Train all 3 models
-make logs           # View logs
-```
-
-### **Environment-Specific Workflows**
-
-#### **🐳 Docker (Local)**
 ```bash
 # 1. Build and start
 make build up
@@ -56,22 +49,11 @@ make eval-all
 make verify-dataset
 make verify
 
-# 2. Download dataset (if needed)
-make download
-
-# 3. Train all 3 models (parallel on GPU nodes)
-make train-all
-
-# 4. Monitor
-make status
-make logs-live
-```
+# 5. Evaluate all models (~15 minutes)
+make eval-all
 
 # 6. Compare and generate report (~10 minutes)
 make compare
-
-# OR: Run everything in one command (~2.7 hours)
-make full-workflow
 ```
 
 **Check results**:
