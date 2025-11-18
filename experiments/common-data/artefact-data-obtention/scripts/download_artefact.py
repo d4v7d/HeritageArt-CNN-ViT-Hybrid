@@ -505,8 +505,8 @@ Examples:
     parser.add_argument(
         '--output', '-o',
         type=str,
-        default='./artefact_dataset',
-        help='Output directory for downloaded data (default: ./artefact_dataset)'
+        default='../artefact',
+        help='Output directory for downloaded data (default: ../artefact)'
     )
     parser.add_argument(
         '--max-samples', '-n',

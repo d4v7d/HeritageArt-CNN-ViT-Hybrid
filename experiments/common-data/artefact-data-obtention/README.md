@@ -7,18 +7,22 @@
 ## Project Structure
 
 ```
-artefact-data-obtention/
-├── README.md              # This file
-├── .gitignore             # Git ignore rules
-├── docker/                # Docker configuration
-│   ├── Dockerfile         # Image definition
-│   ├── docker-compose.yml # Compose config
-│   └── requirements.txt   # Python dependencies
-├── scripts/               # Python scripts
-│   └── download_artefact.py  # Main download script
-├── Makefile               # Convenience commands (make help)
-└── data/                  # Downloaded datasets (generated)
-    └── demo/              # Demo dataset (10 samples)
+common-data/
+├── artefact-data-obtention/   # This directory (download scripts)
+│   ├── README.md
+│   ├── docker/
+│   ├── scripts/
+│   │   └── download_artefact.py
+│   └── Makefile
+├── artefact/                  # Downloaded original dataset (417 samples)
+│   ├── images/
+│   ├── annotations/
+│   ├── annotations_rgb/
+│   └── metadata.csv
+└── artefact_augmented/        # Augmented dataset (1458 samples)
+    ├── images/
+    ├── annotations/
+    └── class_weights_balanced.json
 ```
 
 ## Purpose
@@ -42,33 +46,31 @@ Provides clean, documented code showing how to integrate ARTeFACT with HuggingFa
 # Build image (first time only)
 make build
 
-# Download 10 samples (quick test)
-make download-small
-
-# Download 50 samples
-make download-medium
-
-# Download full dataset (417/418 samples, requires 16GB RAM)
+# Download full dataset to ../artefact/ (417 samples, requires 16GB RAM)
 make download-full
+
+# Or download specific amounts:
+make download-small   # 10 samples for testing
+make download-medium  # 50 samples
 
 # Or use docker-compose directly:
 cd docker
 docker-compose run --rm artefact-data-obtention python3 scripts/download_artefact.py \
-  --output data/test \
-  --max-samples 10
+  --output ../artefact \
+  --all
 ```
 
 ### Custom Commands
 
 ```bash
-# Download specific number of samples
+# Download specific number of samples to custom location
 docker-compose run --rm artefact-data-obtention python3 scripts/download_artefact.py \
-  --output data/custom \
+  --output ../artefact_test \
   --max-samples 100
 
-# Download all samples
+# Download all samples to ../artefact/ (default location)
 docker-compose run --rm artefact-data-obtention python3 scripts/download_artefact.py \
-  --output data/full \
+  --output ../artefact \
   --all
 ```
 
@@ -105,15 +107,18 @@ artefact-data-obtention/
 
 ## Output Structure
 
+Original ARTeFACT dataset downloaded to `../artefact/`:
 ```
-data/artefact_*/
-├── images/              # Resized original images (PNG)
+../artefact/
+├── images/              # Resized original images (PNG, max 512px)
 ├── annotations/         # Grayscale damage masks (0-15 classes, 255=background)
 ├── annotations_rgb/     # Colored damage visualizations
 ├── visualizations/      # 4-panel sample visualizations (first 10)
 ├── metadata.csv         # Sample IDs, paths, descriptions, sizes
 └── statistics.json      # Dataset statistics (materials, contents, class distribution)
 ```
+
+This becomes the source for generating `../artefact_augmented/` (1458 samples).
 
 ## Test Dataset
 
@@ -153,36 +158,39 @@ Use `../artefact-repo-analysis/` (git-lfs + parquet processing) for initial full
 - Memory-efficient processing
 - Handles extremely large images
 
-**Use this Docker approach when:**
-- Integrating with HuggingFace ecosystem
-- Working with pre-processed datasets
-- Building training pipeline examples
-- Need automatic streaming capabilities
-
-## Recommended Workflow
-
-**For complete dataset obtention:**
-
-**Use [`../artefact-repo-analysis/`](../artefact-repo-analysis/)** 
-- Handles all images including 133M pixel files
-- Memory efficient parquet processing
-- Production-ready with Docker
-- Git-LFS repository management
+**Recommendation:** 
+Use this approach for downloading original ARTeFACT dataset (417 samples).
 
 **For training pipeline integration:**
 
-**Use this approach (artefact-data-obtention)** 
-- HuggingFace datasets integration
-- Streaming capabilities
-- 417/418 samples success rate
-- Docker containerized
+See `../artefact_augmented/` (1458 augmented samples) - this is what all POC training scripts use.
+
+## Workflow
+
+1. **Download original dataset** (this directory):
+   ```bash
+   cd common-data/artefact-data-obtention
+   make download-full  # → ../artefact/ (417 samples)
+   ```
+
+2. **Generate augmentations** (see `../README.md` for augmentation script):
+   ```bash
+   cd ..
+   python generate_augmentations.py  # → artefact_augmented/ (1458 samples)
+   ```
+
+3. **Train models** (POC-5.5, 5.8, 5.9):
+   ```bash
+   cd ../artefact-poc59-multiarch-benchmark
+   # All configs point to ../common-data/artefact_augmented/
+   ```
 
 ## Dataset Structure
 
 Expected output:
 ```
-data/artefact_custom/
-├── images/              # Original images (resized)
+../artefact/
+├── images/              # Original images (resized to max 512px)
 ├── annotations/         # Grayscale damage masks
 ├── annotations_rgb/     # Colored damage visualizations
 ├── visualizations/      # Sample 4-panel visualizations
@@ -190,8 +198,11 @@ data/artefact_custom/
 └── statistics.json      # Dataset statistics
 ```
 
-## Related Experiments
+**Note**: Successfully downloads 417/418 samples (one 133M pixel image skipped).
 
-- **[`../artefact-repo-analysis/`](../artefact-repo-analysis/)** - Production data obtention (git-lfs + parquet)
-- **[`../poc-art-damage/`](../poc-art-damage/)** - Main training pipeline with CNN/ViT models
-- **[`../ARTEFACT_EXPERIMENTS.md`](../ARTEFACT_EXPERIMENTS.md)** - Overview of both approaches
+## Related
+
+- **[`../artefact_augmented/`](../artefact_augmented/)** - Augmented dataset (1458 samples) used by all POC training scripts
+- **[`../../artefact-poc55-multiclass/`](../../artefact-poc55-multiclass/)** - Hierarchical MTL training
+- **[`../../artefact-poc58-standard/`](../../artefact-poc58-standard/)** - Standard segmentation with optimizations
+- **[`../../artefact-poc59-multiarch-benchmark/`](../../artefact-poc59-multiarch-benchmark/)** - Production multi-architecture benchmark
