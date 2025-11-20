@@ -1,11 +1,11 @@
 """
-POC-5.8: Training Script with SMP + AMP
+POC-60: Training Script with Hierarchical MTL Support
 
 Key features:
-- Segmentation Models PyTorch (SMP) for proven architectures
+- Supports both standard UNet and Hierarchical UPerNet
+- Hierarchical loss: 0.2*binary + 0.3*coarse + 1.0*fine
 - Automatic Mixed Precision (AMP) for 2x speedup
 - OneCycleLR for better convergence
-- Minimal code, maximum performance
 """
 
 # Force single GPU BEFORE importing torch
@@ -26,10 +26,15 @@ import segmentation_models_pytorch as smp
 # Add current dir to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from dataset import create_dataloaders, compute_class_weights
+from dataset import create_dataloaders, compute_class_weights, fine_to_binary, fine_to_coarse
 from preload_dataset import create_preloaded_dataloaders
 from model_factory import create_model
 from losses import DiceFocalLoss
+from hierarchical_utils import (
+    create_hierarchical_criterion,
+    compute_hierarchical_metrics,
+    is_hierarchical_model
+)
 
 
 class ModelWithLoss(nn.Module):
@@ -62,17 +67,24 @@ def train_epoch(
     scaler: GradScaler,
     device: torch.device,
     use_amp: bool = True,
-    use_dataparallel: bool = False
+    use_dataparallel: bool = False,
+    is_hierarchical: bool = False
 ) -> dict:
     """
-    Train one epoch with AMP
+    Train one epoch with AMP (supports hierarchical models)
     
     Returns:
-        Dict with loss, time, throughput
+        Dict with loss, time, throughput (and per-head losses if hierarchical)
     """
     model.train()
     epoch_loss = 0.0
     start_time = time.time()
+    
+    # Hierarchical tracking
+    if is_hierarchical:
+        epoch_binary_loss = 0.0
+        epoch_coarse_loss = 0.0
+        epoch_fine_loss = 0.0
     
     print(f"  🔄 Training: processing {len(train_loader)} batches...")
     for batch_idx, (images, masks) in enumerate(train_loader, 1):
@@ -88,14 +100,33 @@ def train_epoch(
                     loss = loss.mean()  # Average losses from all GPUs
                 else:
                     predictions = model(images)
-                    loss = criterion(predictions, masks)
+                    
+                    if is_hierarchical:
+                        # Hierarchical: predictions = dict{'binary', 'coarse', 'fine'}
+                        # Convert targets
+                        binary_targets = fine_to_binary(masks)
+                        coarse_targets = fine_to_coarse(masks)
+                        
+                        # Compute loss (criterion handles hierarchical)
+                        loss_dict = criterion(predictions, masks, binary_targets, coarse_targets)
+                        loss = loss_dict['total']
+                    else:
+                        # Standard: predictions = tensor
+                        loss = criterion(predictions, masks)
         else:
             if use_dataparallel:
                 loss, predictions = model(images, masks)
                 loss = loss.mean()
             else:
                 predictions = model(images)
-                loss = criterion(predictions, masks)
+                
+                if is_hierarchical:
+                    binary_targets = fine_to_binary(masks)
+                    coarse_targets = fine_to_coarse(masks)
+                    loss_dict = criterion(predictions, masks, binary_targets, coarse_targets)
+                    loss = loss_dict['total']
+                else:
+                    loss = criterion(predictions, masks)
         
         # Backward with gradient scaling
         optimizer.zero_grad(set_to_none=True)
@@ -114,19 +145,36 @@ def train_epoch(
         # Accumulate loss
         epoch_loss += loss.detach().item()
         
+        if is_hierarchical and not use_dataparallel:
+            epoch_binary_loss += loss_dict['binary'].item()
+            epoch_coarse_loss += loss_dict['coarse'].item()
+            epoch_fine_loss += loss_dict['fine'].item()
+        
         # Progress indicator every 5 batches
         if batch_idx % 5 == 0 or batch_idx == 1:
-            print(f"    Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
+            if is_hierarchical and not use_dataparallel:
+                print(f"    Batch {batch_idx}/{len(train_loader)} - Total: {loss.item():.4f} "
+                      f"(B: {loss_dict['binary'].item():.3f}, C: {loss_dict['coarse'].item():.3f}, "
+                      f"F: {loss_dict['fine'].item():.3f})")
+            else:
+                print(f"    Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.4f}")
     
     elapsed = time.time() - start_time
     avg_loss = epoch_loss / len(train_loader)
     throughput = len(train_loader.dataset) / elapsed
     
-    return {
+    result = {
         'loss': avg_loss,
         'time': elapsed,
         'throughput': throughput
     }
+    
+    if is_hierarchical:
+        result['binary_loss'] = epoch_binary_loss / len(train_loader)
+        result['coarse_loss'] = epoch_coarse_loss / len(train_loader)
+        result['fine_loss'] = epoch_fine_loss / len(train_loader)
+    
+    return result
 
 
 def validate_epoch(
@@ -136,19 +184,26 @@ def validate_epoch(
     device: torch.device,
     num_classes: int,
     use_amp: bool = True,
-    use_dataparallel: bool = False
+    use_dataparallel: bool = False,
+    is_hierarchical: bool = False
 ) -> dict:
     """
-    Validate with IoU computation
+    Validate with IoU computation (supports hierarchical models)
     
     Returns:
-        Dict with loss, miou, iou_per_class
+        Dict with loss, miou, iou_per_class (and per-head metrics if hierarchical)
     """
     model.eval()
     
     all_preds = []
     all_targets = []
     epoch_loss = 0.0
+    
+    # Hierarchical tracking
+    if is_hierarchical:
+        all_binary_preds = []
+        all_coarse_preds = []
+        all_fine_preds = []
     
     print(f"  🔍 Validating: processing {len(val_loader)} batches...")
     with torch.no_grad():
@@ -160,42 +215,93 @@ def validate_epoch(
             if use_amp:
                 with autocast():
                     if use_dataparallel:
-                        # Inference mode: no masks, returns predictions only
                         predictions = model(images)
                     else:
                         predictions = model(images)
-                    loss = criterion(predictions, masks)
+                    
+                    if is_hierarchical:
+                        # Hierarchical: compute loss with all targets
+                        binary_targets = fine_to_binary(masks)
+                        coarse_targets = fine_to_coarse(masks)
+                        loss_dict = criterion(predictions, masks, binary_targets, coarse_targets)
+                        loss = loss_dict['total']
+                    else:
+                        loss = criterion(predictions, masks)
             else:
                 if use_dataparallel:
                     predictions = model(images)
                 else:
                     predictions = model(images)
-                loss = criterion(predictions, masks)
+                
+                if is_hierarchical:
+                    binary_targets = fine_to_binary(masks)
+                    coarse_targets = fine_to_coarse(masks)
+                    loss_dict = criterion(predictions, masks, binary_targets, coarse_targets)
+                    loss = loss_dict['total']
+                else:
+                    loss = criterion(predictions, masks)
             
             epoch_loss += loss.item()
             
             # Store predictions for IoU
-            preds = predictions.argmax(dim=1)
-            all_preds.append(preds)
-            all_targets.append(masks)
+            if is_hierarchical:
+                # Store all 3 heads
+                all_binary_preds.append(predictions['binary'].argmax(dim=1))
+                all_coarse_preds.append(predictions['coarse'].argmax(dim=1))
+                all_fine_preds.append(predictions['fine'].argmax(dim=1))
+                all_targets.append(masks)
+            else:
+                preds = predictions.argmax(dim=1)
+                all_preds.append(preds)
+                all_targets.append(masks)
             
             # Progress indicator
             if batch_idx % 2 == 0 or batch_idx == 1:
                 print(f"    Batch {batch_idx}/{len(val_loader)}")
     
     # Compute IoU (vectorized on GPU)
-    all_preds = torch.cat(all_preds, dim=0)
     all_targets = torch.cat(all_targets, dim=0)
     
-    iou_per_class = compute_iou(all_preds, all_targets, num_classes)
-    miou = iou_per_class.mean().item()
-    avg_loss = epoch_loss / len(val_loader)
-    
-    return {
-        'loss': avg_loss,
-        'miou': miou,
-        'iou_per_class': iou_per_class.cpu().numpy()
-    }
+    if is_hierarchical:
+        # Compute IoU for all 3 heads
+        all_binary_preds = torch.cat(all_binary_preds, dim=0)
+        all_coarse_preds = torch.cat(all_coarse_preds, dim=0)
+        all_fine_preds = torch.cat(all_fine_preds, dim=0)
+        
+        # Convert targets
+        binary_targets = fine_to_binary(all_targets)
+        coarse_targets = fine_to_coarse(all_targets)
+        
+        # Compute per-head IoU
+        binary_iou = compute_iou(all_binary_preds, binary_targets, 2)
+        coarse_iou = compute_iou(all_coarse_preds, coarse_targets, 4)
+        fine_iou = compute_iou(all_fine_preds, all_targets, num_classes)
+        
+        binary_miou = binary_iou.mean().item()
+        coarse_miou = coarse_iou.mean().item()
+        fine_miou = fine_iou.mean().item()
+        
+        return {
+            'loss': epoch_loss / len(val_loader),
+            'binary_miou': binary_miou,
+            'coarse_miou': coarse_miou,
+            'fine_miou': fine_miou,
+            'miou': fine_miou,  # Main metric (for compatibility)
+            'binary_iou_per_class': binary_iou.cpu().numpy(),
+            'coarse_iou_per_class': coarse_iou.cpu().numpy(),
+            'fine_iou_per_class': fine_iou.cpu().numpy()
+        }
+    else:
+        # Standard model
+        all_preds = torch.cat(all_preds, dim=0)
+        iou_per_class = compute_iou(all_preds, all_targets, num_classes)
+        miou = iou_per_class.mean().item()
+        
+        return {
+            'loss': epoch_loss / len(val_loader),
+            'miou': miou,
+            'iou_per_class': iou_per_class.cpu().numpy()
+        }
 
 
 def compute_iou(
@@ -244,7 +350,7 @@ def get_gpu_memory() -> tuple:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='POC-5.9: Production Segmentation Pipeline')
+    parser = argparse.ArgumentParser(description='POC-60: Hierarchical MTL Training')
     parser.add_argument('--config', type=str, required=True,
                        help='Path to config YAML')
     parser.add_argument('--test-epoch', action='store_true',
@@ -258,16 +364,23 @@ def main():
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
+    # Detect if hierarchical model
+    is_hierarchical = config['model'].get('hierarchical', False)
+    
     import sys
     print("="*60)
-    print(f"POC-5.9-v2: Production Segmentation Pipeline")
+    if is_hierarchical:
+        print(f"POC-60: Hierarchical Multi-Task Learning")
+    else:
+        print(f"POC-59: Standard Segmentation Pipeline")
     print("="*60)
     print(f"Device: {device}")
     if torch.cuda.is_available():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
         print(f"Visible GPU count: {torch.cuda.device_count()}")
-    print(f"Architecture: {config['model']['architecture']}")
-    print(f"Encoder: {config['model']['encoder_name']}")
+    print(f"Architecture: {config['model'].get('architecture', 'Unet')}")
+    print(f"Encoder: {config['model'].get('encoder_name', config['model'].get('encoder', 'unknown'))}")
+    print(f"Hierarchical: {'✅ YES (3 heads)' if is_hierarchical else '❌ NO (single head)'}")
     print(f"Batch size: {config['training']['batch_size']}")
     print(f"Image size: {config['data']['image_size']}")
     print(f"Mixed Precision: {config['training']['mixed_precision']}")
@@ -327,9 +440,14 @@ def main():
         print(f"  ⚠️  Pre-computed weights not found ({weights_filename}), using uniform weights")
         class_weights = None
     
-    # Loss function (POC-5.9: DiceFocalLoss with class weights)
+    # Loss function
     print("\nCreating loss function...")
-    if config['loss']['type'] == 'dice_focal':
+    if is_hierarchical:
+        # Hierarchical loss (POC-60)
+        criterion = create_hierarchical_criterion(config, device)
+        print(f"Loss: HIERARCHICAL (0.2*binary + 0.3*coarse + 1.0*fine)")
+    elif config['loss']['type'] == 'dice_focal':
+        # Standard DiceFocalLoss (POC-59)
         criterion = DiceFocalLoss(
             dice_weight=config['loss'].get('dice_weight', 0.5),
             focal_weight=config['loss'].get('focal_weight', 0.5),
@@ -340,6 +458,15 @@ def main():
             ignore_index=255
         )
         print(f"Loss: DICE+FOCAL (weights: {config['loss']['dice_weight']}/{config['loss']['focal_weight']})")
+    elif config['loss']['type'] == 'dice':
+        # Fallback to DiceLoss only
+        from losses import DiceLoss as CustomDiceLoss
+        criterion = CustomDiceLoss(
+            smooth=config['loss'].get('smooth', 1.0),
+            class_weights=class_weights,
+            ignore_index=255
+        )
+        print(f"Loss: DICE (smooth: {config['loss']['smooth']})")
     else:
         # Fallback to SMP DiceLoss
         criterion = smp.losses.DiceLoss(
@@ -392,20 +519,10 @@ def main():
     best_miou = 0.0
     num_classes = config['model']['classes']
     
-    # Create checkpoint directory with clean model names
-    encoder_name = config['model']['encoder_name']
-    # Map encoder names to clean model directory names
-    model_name_map = {
-        'tu-convnext_tiny': 'convnext_tiny',
-        'mit_b3': 'segformer_b3',
-        'tu-maxvit_tiny_tf_384': 'maxvit_tiny'
-    }
-    simple_name = model_name_map.get(encoder_name, encoder_name.replace('tu-', '').replace('/', '_'))
-    checkpoint_dir = Path(f'../logs/models/{simple_name}')
+    # Create checkpoint directory
+    model_name = f"{config['model']['architecture']}_{config['model']['encoder_name']}"
+    checkpoint_dir = Path(f'../logs/{model_name}')
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    
-    print(f"💾 Checkpoint directory: {checkpoint_dir}")
-    print()
     
     print(f"🚀 Starting epoch loop (1 to {num_epochs})...")
     print()
@@ -416,14 +533,16 @@ def main():
         train_metrics = train_epoch(
             model, train_loader, criterion, optimizer, scheduler, scaler,
             device, use_amp=config['training']['mixed_precision'],
-            use_dataparallel=use_dataparallel
+            use_dataparallel=use_dataparallel,
+            is_hierarchical=is_hierarchical
         )
         
         # Validate
         val_metrics = validate_epoch(
             model, val_loader, criterion, device, num_classes,
             use_amp=config['training']['mixed_precision'],
-            use_dataparallel=use_dataparallel
+            use_dataparallel=use_dataparallel,
+            is_hierarchical=is_hierarchical
         )
         
         # GPU memory
@@ -433,8 +552,20 @@ def main():
         # Log
         print(f"Epoch {epoch}/{num_epochs} ({train_metrics['time']:.1f}s)")
         print(f"  Train - Loss: {train_metrics['loss']:.4f}")
-        print(f"  Val   - Loss: {val_metrics['loss']:.4f}")
-        print(f"         mIoU: {val_metrics['miou']:.4f}")
+        
+        if is_hierarchical:
+            # Hierarchical metrics
+            print(f"         Binary Loss: {train_metrics.get('binary_loss', 0):.4f}")
+            print(f"         Coarse Loss: {train_metrics.get('coarse_loss', 0):.4f}")
+            print(f"         Fine Loss: {train_metrics.get('fine_loss', 0):.4f}")
+            print(f"  Val   - Loss: {val_metrics['loss']:.4f}")
+            print(f"         Binary mIoU: {val_metrics.get('binary_miou', 0):.4f}")
+            print(f"         Coarse mIoU: {val_metrics.get('coarse_miou', 0):.4f}")
+            print(f"         Fine mIoU: {val_metrics.get('fine_miou', 0):.4f}")
+        else:
+            # Standard metrics
+            print(f"  Val   - Loss: {val_metrics['loss']:.4f}")
+            print(f"         mIoU: {val_metrics['miou']:.4f}")
         print(f"  Throughput: {train_metrics['throughput']:.1f} imgs/s")
         print(f"  VRAM: {vram_used:.2f}GB / {vram_total:.2f}GB ({vram_pct:.1f}%)")
         
