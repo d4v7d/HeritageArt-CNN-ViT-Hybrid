@@ -401,7 +401,10 @@ def main():
         'tu-maxvit_tiny_tf_384': 'maxvit_tiny'
     }
     simple_name = model_name_map.get(encoder_name, encoder_name.replace('tu-', '').replace('/', '_'))
-    checkpoint_dir = Path(f'../logs/models/{simple_name}')
+    
+    # Use absolute path to avoid issues when running from different directories
+    project_root = Path(__file__).parent.parent
+    checkpoint_dir = project_root / 'logs' / 'models' / simple_name
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"💾 Checkpoint directory: {checkpoint_dir}")
