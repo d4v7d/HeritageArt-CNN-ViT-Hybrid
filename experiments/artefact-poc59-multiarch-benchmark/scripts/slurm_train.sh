@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=2:00:00
-#SBATCH --output=logs/train_%j.out
-#SBATCH --error=logs/train_%j.err
+#SBATCH --output=logs/slurm/train_%j.out
+#SBATCH --error=logs/slurm/train_%j.err
 
 echo "================================"
 echo "POC-5.9-v2 Training Job"
@@ -24,7 +24,7 @@ conda activate poc55
 export CUDA_VISIBLE_DEVICES=0
 
 # Run training
-cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc59-v2
+cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc59-multiarch-benchmark
 
 CONFIG=${1:-configs/convnext_tiny.yaml}
 

@@ -39,8 +39,8 @@ CLASS_NAMES = [
 COLORS = plt.cm.tab20(np.linspace(0, 1, 20))[:16]
 
 
-def load_model_and_checkpoint(config_path: str, checkpoint_path: str = None) -> Tuple[nn.Module, Dict]:
-    """Load model and checkpoint."""
+def load_model_and_checkpoint(config_path: str, checkpoint_path: str = None) -> Tuple[nn.Module, Dict, str]:
+    """Load model and checkpoint. Returns (model, config, device, checkpoint_path)."""
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
     
@@ -53,13 +53,16 @@ def load_model_and_checkpoint(config_path: str, checkpoint_path: str = None) -> 
     # Find checkpoint if not specified
     model_config = config['model']
     if checkpoint_path is None:
-        model_name = model_config['encoder_name'].replace('/', '_')
-        if model_name.startswith('tu-'):
-            model_dir = f"Unet_{model_name}"
-        else:
-            model_dir = f"Unet_{model_name}"
+        # Map encoder names to model directories
+        encoder_name = model_config['encoder_name']
+        model_dirs = {
+            'tu-convnext_tiny': 'convnext_tiny',
+            'mit_b3': 'segformer_b3',
+            'tu-maxvit_tiny_tf_384': 'maxvit_tiny'
+        }
+        model_dir = model_dirs.get(encoder_name, f"Unet_{encoder_name.replace('/', '_')}")
         
-        checkpoint_path = f"../logs/{model_dir}/best_model.pth"
+        checkpoint_path = f"../logs/models/{model_dir}/best_model.pth"
     
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
@@ -72,7 +75,7 @@ def load_model_and_checkpoint(config_path: str, checkpoint_path: str = None) -> 
     print(f"✅ Loaded checkpoint: {checkpoint_path}")
     print(f"   Epoch: {checkpoint['epoch']}, Best mIoU: {checkpoint['best_miou']:.4f}")
     
-    return model, config, device
+    return model, config, device, checkpoint_path
 
 
 @torch.no_grad()
@@ -154,8 +157,8 @@ def plot_prediction_grid(predictions: List[Dict], output_path: str, title: str =
         axes[idx, 3].set_title('Overlay' if idx == 0 else '', fontsize=12, fontweight='bold')
         axes[idx, 3].axis('off')
     
-    plt.suptitle(title, fontsize=16, fontweight='bold')
-    plt.tight_layout()
+    plt.suptitle(title, fontsize=16, fontweight='bold', y=0.995)
+    plt.tight_layout(rect=[0, 0, 1, 0.99])
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
@@ -330,16 +333,17 @@ def plot_per_class_predictions(predictions: List[Dict], output_path: str, class_
 def visualize_model(config_path: str, checkpoint_path: str = None, num_samples: int = 10, 
                    output_dir: str = None):
     """Generate all visualizations for a model."""
+    from pathlib import Path as PathLib
     
-    # Load model
-    model, config, device = load_model_and_checkpoint(config_path, checkpoint_path)
+    # Load model (returns checkpoint_path too)
+    model, config, device, checkpoint_path = load_model_and_checkpoint(config_path, checkpoint_path)
     
     # Setup output directory
     if output_dir is None:
         # Use checkpoint parent directory (models/{name}/)
-        output_dir = checkpoint_path.parent / 'visualizations'
+        output_dir = PathLib(checkpoint_path).parent / 'visualizations'
     else:
-        output_dir = Path(output_dir)
+        output_dir = PathLib(output_dir)
     
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"\n📁 Output directory: {output_dir}\n")
@@ -353,8 +357,7 @@ def visualize_model(config_path: str, checkpoint_path: str = None, num_samples: 
     use_augmented = config['data'].get('use_augmented', False)
     
     # Setup data path
-    from pathlib import Path
-    data_path = Path(data_root)
+    data_path = PathLib(data_root)
     
     # Check if augmented dataset exists
     augmented_path = data_path.parent / 'artefact_augmented'

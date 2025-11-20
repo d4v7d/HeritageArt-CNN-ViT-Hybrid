@@ -342,8 +342,8 @@ def main():
                       f"{res['inference_time']:>14.2f}")
             print("=" * 80)
             
-            # Save comparison
-            comparison_file = Path('../results/model_comparison.json')
+            # Save comparison to logs/results
+            comparison_file = Path('../logs/results/model_comparison.json')
             comparison_file.parent.mkdir(parents=True, exist_ok=True)
             
             comparison_data = {
@@ -383,11 +383,19 @@ def evaluate_single_model(config_path: str, checkpoint_path: str = None) -> Dict
     # Determine checkpoint path
     if checkpoint_path is None:
         encoder_name = config['model']['encoder_name']
+        config_name = Path(config_path).stem
+        # Map config names to model directories
+        model_dirs = {
+            'convnext_tiny': 'convnext_tiny',
+            'segformer_b3': 'segformer_b3',
+            'maxvit_tiny': 'maxvit_tiny'
+        }
+        model_dir = model_dirs.get(config_name, config_name)
         # Try different possible paths
         possible_paths = [
+            Path(f'../logs/models/{model_dir}/best_model.pth'),
             Path(f'../logs/Unet_{encoder_name}/best_model.pth'),
             Path(f'../logs/{encoder_name}/best_model.pth'),
-            Path(f'../logs/{Path(config_path).stem}/best_model.pth'),
         ]
         
         checkpoint_path = None
