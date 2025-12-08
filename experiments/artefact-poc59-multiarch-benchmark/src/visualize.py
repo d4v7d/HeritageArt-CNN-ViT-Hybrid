@@ -28,11 +28,11 @@ from model_factory import create_model
 from dataset import ArtefactDataset, get_transforms  # Use normal dataset, not preloaded
 
 
-# Class names (16 damage classes)
+# Class names (16 damage classes - official ARTeFACT)
 CLASS_NAMES = [
-    "Clean", "Material_loss", "Peel", "Cracks", "Structural_defects",
-    "Dirt_spots", "Stains", "Discolouration", "Scratches", "Burn_marks",
-    "Hairs", "Dust_spots", "Lightleak", "Fading", "Blur", "Other_damage"
+    "Clean", "Material_loss", "Peel", "Dust", "Scratch",
+    "Hair", "Dirt", "Fold", "Writing", "Cracks",
+    "Staining", "Stamp", "Sticker", "Puncture", "Burn_marks", "Lightleak"
 ]
 
 # Color palette for visualizations
@@ -440,7 +440,7 @@ def visualize_model(config_path: str, checkpoint_path: str = None, num_samples: 
     )
     
     # 4. Per-class visualizations for top classes
-    top_classes = [0, 1, 2, 7, 8, 15]  # Clean, Material_loss, Peel, Discolouration, Scratches, Other_damage
+    top_classes = [0, 1, 2, 7, 8, 9]  # Clean, Material_loss, Peel, Fold, Writing, Cracks
     for cls_idx in top_classes:
         plot_per_class_predictions(
             predictions,

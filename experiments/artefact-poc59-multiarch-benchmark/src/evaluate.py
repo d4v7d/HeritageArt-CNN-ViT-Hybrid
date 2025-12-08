@@ -41,11 +41,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from model_factory import create_model
 from preload_dataset import create_val_only_dataloader
 
-# ARTeFACT 16 classes
+# ARTeFACT 16 classes (official from danielaivanova/damaged-media)
 CLASS_NAMES = [
-    'Clean', 'Material_loss', 'Peel', 'Cracks', 'Structural_defects',
-    'Dirt_spots', 'Stains', 'Discolouration', 'Scratches', 'Burn_marks',
-    'Hairs', 'Dust_spots', 'Lightleak', 'Fading', 'Blur', 'Other_damage'
+    'Clean', 'Material_loss', 'Peel', 'Dust', 'Scratch',
+    'Hair', 'Dirt', 'Fold', 'Writing', 'Cracks',
+    'Staining', 'Stamp', 'Sticker', 'Puncture', 'Burn_marks', 'Lightleak'
 ]
 
 

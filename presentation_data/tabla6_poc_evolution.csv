@@ -1,8 +1,0 @@
-Metrica,POC5_Binary,POC5.5_Laptop,POC5.8_Server,POC6_Target,Mejora_Total
-mIoU,45.3%,22.02%,TBD,38-42%,Esperada
-Throughput_imgs_s,8.5,4.2,97.0,120-150,+17.6x
-VRAM_Usage_GB,2.1,0.84,0.41,8-12,Optimizado
-Training_Time_h,2.0,53.0,0.20,24-36,Escalable
-Dataset_Samples,50,418,1464,11000,+220x
-Num_Classes,2,16,16,16,+8x
-Innovation,Basic,Hierarchical_MTL,RAM_Preloading,DG_Techniques,Multi_Stage

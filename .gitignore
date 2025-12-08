@@ -27,18 +27,19 @@ experiments/**/*.png
 experiments/**/result.*
 
 # POC-59: Incluir resultados de evaluación y visualización
-!experiments/artefact-poc59-multiarch-benchmark/logs/models/**/evaluation/*.png
-!experiments/artefact-poc59-multiarch-benchmark/logs/models/**/evaluation/*.json
-!experiments/artefact-poc59-multiarch-benchmark/logs/models/**/visualizations/*.png
+!experiments/artefact-poc59-multiarch-benchmark/logs/
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/evaluation/
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/evaluation/*.png
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/evaluation/*.json
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/visualizations/
+!experiments/artefact-poc59-multiarch-benchmark/logs/models/*/visualizations/*.png
+!experiments/artefact-poc59-multiarch-benchmark/logs/results/
 !experiments/artefact-poc59-multiarch-benchmark/logs/results/*.json
-
-# Backup: Incluir todos los resultados del backup
-!experiments/backup/**/*.png
-!experiments/backup/**/*.json
 
 # POC-59: Excluir checkpoints y archivos grandes
 experiments/artefact-poc59-multiarch-benchmark/logs/**/*.pth
-experiments/artefact-poc59-multiarch-benchmark/logs/archive/
 experiments/artefact-poc59-multiarch-benchmark/logs/slurm/
 
 # IDEs

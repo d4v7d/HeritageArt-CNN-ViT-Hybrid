@@ -1,6 +1,0 @@
-Dataset,Samples,Classes,Resolution,Task,Hardware,Status
-ARTeFACT_Demo,50,2,512x512,Binary_Segmentation,RTX_3050_6GB,POC5_Completed
-ARTeFACT_Full,418,16,256x256,Multiclass_Hierarchical,RTX_3050_6GB,POC5.5_Completed
-ARTeFACT_Full,418,16,384x384,Multiclass_Standard,Tesla_V100_32GB,POC5.8_In_Progress
-ARTeFACT_Full_Augmented,1464,16,384x384,Multiclass_Preloaded,Tesla_V100_32GB,POC5.8_Current
-ARTeFACT_Expected,11000,16,512x512,Multiclass_DG,Tesla_V100_32GB,POC6_Planned
