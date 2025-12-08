@@ -62,7 +62,7 @@ def load_model_and_checkpoint(config_path: str, checkpoint_path: str = None) -> 
         }
         model_dir = model_dirs.get(encoder_name, f"Unet_{encoder_name.replace('/', '_')}")
         
-        checkpoint_path = f"../logs/models/{model_dir}/best_model.pth"
+        checkpoint_path = f"logs/models/{model_dir}/best_model.pth"
     
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")

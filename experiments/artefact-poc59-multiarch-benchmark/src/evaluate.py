@@ -393,9 +393,9 @@ def evaluate_single_model(config_path: str, checkpoint_path: str = None) -> Dict
         model_dir = model_dirs.get(config_name, config_name)
         # Try different possible paths
         possible_paths = [
-            Path(f'../logs/models/{model_dir}/best_model.pth'),
-            Path(f'../logs/Unet_{encoder_name}/best_model.pth'),
-            Path(f'../logs/{encoder_name}/best_model.pth'),
+            Path(f'logs/models/{model_dir}/best_model.pth'),
+            Path(f'logs/Unet_{encoder_name}/best_model.pth'),
+            Path(f'logs/{encoder_name}/best_model.pth'),
         ]
         
         checkpoint_path = None
