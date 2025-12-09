@@ -1,6 +1,6 @@
 {
   "mean_iou": 0.3068678635851635,
-  "inference_time_ms": 7.072275342500728,
+  "inference_time_ms": 7.074499448788338,
   "per_class": {
     "Clean": {
       "iou": 0.9280005544424057,

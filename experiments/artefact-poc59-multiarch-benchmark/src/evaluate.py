@@ -343,7 +343,9 @@ def main():
             print("=" * 80)
             
             # Save comparison to logs/results
-            comparison_file = Path('../logs/results/model_comparison.json')
+            # Use Path(__file__) to get the script location and build correct relative path
+            script_dir = Path(__file__).parent
+            comparison_file = script_dir.parent / 'logs' / 'results' / 'model_comparison.json'
             comparison_file.parent.mkdir(parents=True, exist_ok=True)
             
             comparison_data = {
@@ -361,10 +363,13 @@ def main():
                 ]
             }
             
-            with open(comparison_file, 'w') as f:
-                json.dump(comparison_data, f, indent=2)
-            
-            print(f"\n✅ Comparison saved: {comparison_file}")
+            try:
+                with open(comparison_file, 'w') as f:
+                    json.dump(comparison_data, f, indent=2)
+                print(f"\n✅ Comparison saved: {comparison_file.resolve()}")
+            except Exception as e:
+                print(f"\n❌ Error saving comparison: {e}")
+                print(f"   Attempted path: {comparison_file.resolve()}")
         
     else:
         # Single model evaluation

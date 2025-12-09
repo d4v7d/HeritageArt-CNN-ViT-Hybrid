@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-12-08 19:21:04",
+  "models": [
+    {
+      "name": "tu-convnext_tiny",
+      "mean_iou": 0.3068678635851635,
+      "mean_precision": 0.6381576370202109,
+      "mean_recall": 0.351813238953279,
+      "mean_f1": 0.514931093357605,
+      "inference_time_ms": 7.074499448788338
+    },
+    {
+      "name": "mit_b3",
+      "mean_iou": 0.3564175668993399,
+      "mean_precision": 0.6053957252794147,
+      "mean_recall": 0.42389756788351485,
+      "mean_f1": 0.5518489127862529,
+      "inference_time_ms": 8.573769458702632
+    },
+    {
+      "name": "tu-maxvit_tiny_tf_384",
+      "mean_iou": 0.3755161598951201,
+      "mean_precision": 0.7700336938022406,
+      "mean_recall": 0.4271040584176912,
+      "mean_f1": 0.6813182931388532,
+      "inference_time_ms": 7.578825265724467
+    }
+  ]
+}
