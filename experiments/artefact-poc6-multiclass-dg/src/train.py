@@ -25,11 +25,14 @@ import segmentation_models_pytorch as smp
 
 # Add current dir to path
 sys.path.insert(0, str(Path(__file__).parent))
+# Add parent dir to path (for src. imports)
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dataset import create_dataloaders, compute_class_weights
 from preload_dataset import create_preloaded_dataloaders
 from model_factory import create_model
 from losses import DiceFocalLoss
+from src.losses.hierarchical_loss import HierarchicalDiceFocalLoss
 
 
 class ModelWithLoss(nn.Module):
@@ -47,6 +50,9 @@ class ModelWithLoss(nn.Module):
         if masks is not None:
             # Training mode: return loss
             loss = self.criterion(predictions, masks)
+            # Handle tuple return from hierarchical loss
+            if isinstance(loss, tuple):
+                return loss[0], predictions
             return loss, predictions
         else:
             # Inference mode: return predictions only
@@ -77,7 +83,12 @@ def train_epoch(
     print(f"  🔄 Training: processing {len(train_loader)} batches...")
     for batch_idx, (images, masks) in enumerate(train_loader, 1):
         images = images.to(device, non_blocking=True)
-        masks = masks.to(device, non_blocking=True)
+        
+        # Handle hierarchical masks (dict)
+        if isinstance(masks, dict):
+            masks = {k: v.to(device, non_blocking=True) for k, v in masks.items()}
+        else:
+            masks = masks.to(device, non_blocking=True)
         
         # Forward with AMP
         if use_amp:
@@ -88,14 +99,22 @@ def train_epoch(
                     loss = loss.mean()  # Average losses from all GPUs
                 else:
                     predictions = model(images)
-                    loss = criterion(predictions, masks)
+                    loss_out = criterion(predictions, masks)
+                    if isinstance(loss_out, tuple):
+                        loss = loss_out[0]
+                    else:
+                        loss = loss_out
         else:
             if use_dataparallel:
                 loss, predictions = model(images, masks)
                 loss = loss.mean()
             else:
                 predictions = model(images)
-                loss = criterion(predictions, masks)
+                loss_out = criterion(predictions, masks)
+                if isinstance(loss_out, tuple):
+                    loss = loss_out[0]
+                else:
+                    loss = loss_out
         
         # Backward with gradient scaling
         optimizer.zero_grad(set_to_none=True)
@@ -154,7 +173,14 @@ def validate_epoch(
     with torch.no_grad():
         for batch_idx, (images, masks) in enumerate(val_loader, 1):
             images = images.to(device, non_blocking=True)
-            masks = masks.to(device, non_blocking=True)
+            
+            # Handle hierarchical masks
+            if isinstance(masks, dict):
+                masks_gpu = {k: v.to(device, non_blocking=True) for k, v in masks.items()}
+                target_masks = masks['fine'] # Use fine masks for IoU
+            else:
+                masks_gpu = masks.to(device, non_blocking=True)
+                target_masks = masks
             
             # Forward with AMP
             if use_amp:
@@ -164,28 +190,42 @@ def validate_epoch(
                         predictions = model(images)
                     else:
                         predictions = model(images)
-                    loss = criterion(predictions, masks)
+                    
+                    loss_out = criterion(predictions, masks_gpu)
+                    if isinstance(loss_out, tuple):
+                        loss = loss_out[0]
+                    else:
+                        loss = loss_out
             else:
                 if use_dataparallel:
                     predictions = model(images)
                 else:
                     predictions = model(images)
-                loss = criterion(predictions, masks)
+                
+                loss_out = criterion(predictions, masks_gpu)
+                if isinstance(loss_out, tuple):
+                    loss = loss_out[0]
+                else:
+                    loss = loss_out
             
             epoch_loss += loss.item()
             
             # Store predictions for IoU
-            preds = predictions.argmax(dim=1)
-            all_preds.append(preds)
-            all_targets.append(masks)
+            if isinstance(predictions, dict):
+                preds = predictions['fine'].argmax(dim=1)
+            else:
+                preds = predictions.argmax(dim=1)
+                
+            all_preds.append(preds.cpu())
+            all_targets.append(target_masks)
             
             # Progress indicator
             if batch_idx % 2 == 0 or batch_idx == 1:
                 print(f"    Batch {batch_idx}/{len(val_loader)}")
     
     # Compute IoU (vectorized on GPU)
-    all_preds = torch.cat(all_preds, dim=0)
-    all_targets = torch.cat(all_targets, dim=0)
+    all_preds = torch.cat(all_preds, dim=0).to(device)
+    all_targets = torch.cat(all_targets, dim=0).to(device)
     
     iou_per_class = compute_iou(all_preds, all_targets, num_classes)
     miou = iou_per_class.mean().item()
@@ -243,12 +283,70 @@ def get_gpu_memory() -> tuple:
     return 0, 0
 
 
+def update_curriculum(model, criterion, epoch, config):
+    """
+    Update model and loss based on curriculum stage (POC-6 Innovation #5)
+    """
+    if not config['training'].get('curriculum', False):
+        return
+    
+    # Define stages (hardcoded for POC-6 as per plan)
+    # Stage 1: Binary (1-20)
+    # Stage 2: Coarse (21-40)
+    # Stage 3: Fine (41-100)
+    
+    if epoch <= 20:
+        stage = 'binary'
+        freeze = ['head_coarse', 'head_fine']
+        weights = {'binary': 1.0, 'coarse': 0.0, 'fine': 0.0}
+    elif epoch <= 40:
+        stage = 'coarse'
+        freeze = ['head_fine']
+        weights = {'binary': 0.2, 'coarse': 1.0, 'fine': 0.0}
+    else:
+        stage = 'fine'
+        freeze = []
+        weights = {'binary': 0.2, 'coarse': 0.3, 'fine': 1.0}
+        
+    print(f"  🎓 Curriculum Stage: {stage.upper()} (Epoch {epoch})")
+    
+    # Update loss weights
+    if hasattr(criterion, 'binary_weight'):
+        criterion.binary_weight = weights['binary']
+        criterion.coarse_weight = weights['coarse']
+        criterion.fine_weight = weights['fine']
+        print(f"     Loss weights: {weights}")
+        
+    # Freeze/Unfreeze heads
+    # We need to access the underlying model (handle DataParallel)
+    if isinstance(model, torch.nn.DataParallel):
+        real_model = model.module.model
+    elif isinstance(model, ModelWithLoss):
+        real_model = model.model
+    else:
+        real_model = model
+    
+    # Unfreeze everything first
+    for param in real_model.parameters():
+        param.requires_grad = True
+        
+    # Freeze specific heads
+    for head_name in freeze:
+        if hasattr(real_model, head_name):
+            head = getattr(real_model, head_name)
+            for param in head.parameters():
+                param.requires_grad = False
+            print(f"     ❄️  Frozen {head_name}")
+
+
 def main():
     parser = argparse.ArgumentParser(description='POC-5.9: Production Segmentation Pipeline')
     parser.add_argument('--config', type=str, required=True,
                        help='Path to config YAML')
     parser.add_argument('--test-epoch', action='store_true',
                        help='Run only 1 epoch for testing')
+    parser.add_argument('--manifest', type=str, default=None,
+                       help='Path to JSON manifest for DG split')
     args = parser.parse_args()
     
     # Load config
@@ -260,18 +358,22 @@ def main():
     
     import sys
     print("="*60)
-    print(f"POC-5.9-v2: Production Segmentation Pipeline")
+    print(f"POC-6: Multiclass Segmentation + Domain Generalization")
     print("="*60)
     print(f"Device: {device}")
     if torch.cuda.is_available():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
         print(f"Visible GPU count: {torch.cuda.device_count()}")
-    print(f"Architecture: {config['model']['architecture']}")
-    print(f"Encoder: {config['model']['encoder_name']}")
+    
+    encoder_name = config['model'].get('encoder_name', config['model'].get('encoder', 'unknown'))
+    print(f"Architecture: {config['model'].get('architecture', 'HierarchicalUPerNet')}")
+    print(f"Encoder: {encoder_name}")
     print(f"Batch size: {config['training']['batch_size']}")
     print(f"Image size: {config['data']['image_size']}")
     print(f"Mixed Precision: {config['training']['mixed_precision']}")
     print(f"Epochs: {1 if args.test_epoch else config['training']['epochs']}")
+    if args.manifest:
+        print(f"Manifest: {args.manifest}")
     print()
     sys.stdout.flush()
     
@@ -287,7 +389,8 @@ def main():
             batch_size=config['training']['batch_size'],
             num_workers=config['dataloader']['num_workers'],
             use_augmented=config['data'].get('use_augmented', False),
-            preload_to_gpu=config['data'].get('preload_to_gpu', False)
+            preload_to_gpu=config['data'].get('preload_to_gpu', False),
+            manifest_path=args.manifest
         )
     else:
         print("Using standard CPU dataloader")
@@ -300,7 +403,9 @@ def main():
             persistent_workers=config['dataloader']['persistent_workers'],
             prefetch_factor=config['dataloader']['prefetch_factor'],
             drop_last=config['dataloader']['drop_last'],
-            use_augmented=config['data'].get('use_augmented', False)
+            use_augmented=config['data'].get('use_augmented', False),
+            hierarchical=config['data'].get('hierarchical', False),
+            manifest_path=args.manifest
         )
     
     # Create model
@@ -329,7 +434,16 @@ def main():
     
     # Loss function (POC-5.9: DiceFocalLoss with class weights)
     print("\nCreating loss function...")
-    if config['loss']['type'] == 'dice_focal':
+    if config['loss']['type'] == 'hierarchical':
+        criterion = HierarchicalDiceFocalLoss(
+            binary_weight=config['loss'].get('binary_weight', 0.2),
+            coarse_weight=config['loss'].get('coarse_weight', 0.3),
+            fine_weight=config['loss'].get('fine_weight', 1.0),
+            fine_class_weights=class_weights,
+            ignore_index=255
+        )
+        print(f"Loss: HIERARCHICAL (weights: {config['loss']['binary_weight']}/{config['loss']['coarse_weight']}/{config['loss']['fine_weight']})")
+    elif config['loss']['type'] == 'dice_focal':
         criterion = DiceFocalLoss(
             dice_weight=config['loss'].get('dice_weight', 0.5),
             focal_weight=config['loss'].get('focal_weight', 0.5),
@@ -393,18 +507,24 @@ def main():
     num_classes = config['model']['classes']
     
     # Create checkpoint directory with clean model names
-    encoder_name = config['model']['encoder_name']
     # Map encoder names to clean model directory names
     model_name_map = {
         'tu-convnext_tiny': 'convnext_tiny',
         'mit_b3': 'segformer_b3',
-        'tu-maxvit_tiny_tf_384': 'maxvit_tiny'
+        'tu-maxvit_tiny_tf_384': 'maxvit_tiny',
+        'convnext_tiny': 'convnext_tiny',
+        'maxvit_tiny_rw_256': 'maxvit_tiny'
     }
     simple_name = model_name_map.get(encoder_name, encoder_name.replace('tu-', '').replace('/', '_'))
     
     # Use absolute path to avoid issues when running from different directories
     project_root = Path(__file__).parent.parent
     checkpoint_dir = project_root / 'logs' / 'models' / simple_name
+    
+    if args.manifest:
+        fold_name = Path(args.manifest).stem
+        checkpoint_dir = checkpoint_dir / fold_name
+        
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"💾 Checkpoint directory: {checkpoint_dir}")
@@ -415,6 +535,10 @@ def main():
     for epoch in range(1, num_epochs + 1):
         print(f"\n📅 EPOCH {epoch}/{num_epochs}")
         print("="*60)
+        
+        # Update curriculum (POC-6)
+        update_curriculum(model, criterion, epoch, config)
+        
         # Train
         train_metrics = train_epoch(
             model, train_loader, criterion, optimizer, scheduler, scaler,

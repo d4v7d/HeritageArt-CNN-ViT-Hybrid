@@ -127,7 +127,8 @@ def create_preloaded_dataloaders(
     num_workers: int = 8,
     use_augmented: bool = False,
     preload_to_gpu: bool = False,
-    seed: int = 42
+    seed: int = 42,
+    manifest_path: str = None
 ) -> Tuple[DataLoader, DataLoader]:
     """
     Creates train/val dataloaders with RAM pre-loading.
@@ -140,6 +141,7 @@ def create_preloaded_dataloaders(
         use_augmented: Use augmented dataset (1,463 images vs 334)
         preload_to_gpu: Keep data on GPU (experimental)
         seed: Random seed for train/val split
+        manifest_path: Path to JSON manifest for split (POC-6 DG)
     
     Returns:
         train_loader, val_loader
@@ -156,34 +158,47 @@ def create_preloaded_dataloaders(
     else:
         print(f"📦 Using original dataset: {data_path}")
     
-    image_dir = data_path / 'images'
-    mask_dir = data_path / 'annotations'
-    
-    # Get all image paths
-    image_paths = sorted(
-        list(image_dir.glob('*.png')) +
-        list(image_dir.glob('*.jpg'))
-    )
-    mask_paths = [mask_dir / img.name for img in image_paths]
-    
-    # Filter existing masks
-    mask_paths = [m for m in mask_paths if m.exists()]
-    image_paths = image_paths[:len(mask_paths)]
-    
-    print(f"📊 Found {len(image_paths)} images")
-    
-    # Train/val split (80/20)
-    np.random.seed(seed)
-    indices = np.random.permutation(len(image_paths))
-    split_idx = int(len(indices) * 0.8)
-    
-    train_indices = indices[:split_idx]
-    val_indices = indices[split_idx:]
-    
-    train_images = [str(image_paths[i]) for i in train_indices]
-    train_masks = [str(mask_paths[i]) for i in train_indices]
-    val_images = [str(image_paths[i]) for i in val_indices]
-    val_masks = [str(mask_paths[i]) for i in val_indices]
+    if manifest_path:
+        print(f"📜 Loading split from manifest: {manifest_path}")
+        import json
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+            
+        train_images = [str(data_path / p) for p in manifest['train']]
+        val_images = [str(data_path / p) for p in manifest['test']]
+        
+        train_masks = [str(data_path / p.replace('images/', 'annotations/')) for p in manifest['train']]
+        val_masks = [str(data_path / p.replace('images/', 'annotations/')) for p in manifest['test']]
+        
+    else:
+        image_dir = data_path / 'images'
+        mask_dir = data_path / 'annotations'
+        
+        # Get all image paths
+        image_paths = sorted(
+            list(image_dir.glob('*.png')) +
+            list(image_dir.glob('*.jpg'))
+        )
+        mask_paths = [mask_dir / img.name for img in image_paths]
+        
+        # Filter existing masks
+        mask_paths = [m for m in mask_paths if m.exists()]
+        image_paths = image_paths[:len(mask_paths)]
+        
+        print(f"📊 Found {len(image_paths)} images")
+        
+        # Train/val split (80/20)
+        np.random.seed(seed)
+        indices = np.random.permutation(len(image_paths))
+        split_idx = int(len(indices) * 0.8)
+        
+        train_indices = indices[:split_idx]
+        val_indices = indices[split_idx:]
+        
+        train_images = [str(image_paths[i]) for i in train_indices]
+        train_masks = [str(mask_paths[i]) for i in train_indices]
+        val_images = [str(image_paths[i]) for i in val_indices]
+        val_masks = [str(mask_paths[i]) for i in val_indices]
     
     print(f"📊 Train: {len(train_images)}, Val: {len(val_images)}")
     

@@ -1,29 +1,36 @@
 """
-Model Factory for POC-5.8
-U-Net decoder with custom Timm encoders for fair comparison
+Model Factory for POC-6
+Supports:
+- Standard U-Net (POC-5.8 legacy)
+- Hierarchical UPerNet (POC-6 Innovation #1)
 """
 import torch
 import torch.nn as nn
 import segmentation_models_pytorch as smp
-from timm_encoder import create_timm_encoder
+from src.timm_encoder import create_timm_encoder
+from src.models.hierarchical_upernet import build_hierarchical_model
 
 
 def create_model(config: dict):
     """
-    Create U-Net segmentation model with custom or SMP encoder
+    Create segmentation model (Standard U-Net or Hierarchical UPerNet)
     
     Args:
-        config: Model configuration dict with keys:
-            - architecture: 'Unet' (only UNet supported for fair comparison)
-            - encoder_name: encoder name (e.g., 'resnet50' or 'tu-convnext_tiny')
-            - encoder_weights: 'imagenet' or None
-            - classes: number of output classes
-            - activation: output activation (None for logits)
+        config: Model configuration dict
     
     Returns:
-        U-Net model instance
+        Model instance
     """
     model_config = config.get('model', config)
+    
+    # Check for hierarchical model (POC-6)
+    if model_config.get('hierarchical', False):
+        # Ensure 'encoder' key exists (map from 'encoder_name' if needed)
+        if 'encoder' not in model_config and 'encoder_name' in model_config:
+            model_config['encoder'] = model_config['encoder_name'].replace('tu-', '')
+            
+        print(f"Creating Hierarchical UPerNet with encoder: {model_config['encoder']}")
+        return build_hierarchical_model(config)
     
     encoder_name = model_config['encoder_name']
     encoder_weights = model_config.get('encoder_weights', 'imagenet')

@@ -1,18 +1,20 @@
 """
-POC-5.8: ARTeFACT Dataset Loader (Standard)
+POC-6: ARTeFACT Dataset Loader (Hierarchical)
 
-Clean, simple dataset loader compatible with SMP models.
-Returns (image, mask) where mask is long tensor with class indices.
+Supports:
+- Standard mode: Returns (image, fine_mask)
+- Hierarchical mode: Returns (image, {'binary': ..., 'coarse': ..., 'fine': ...})
 """
 
 from pathlib import Path
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Union, Dict
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+from src.models.hierarchical_upernet import fine_to_binary, fine_to_coarse
 
 
 class ArtefactDataset(Dataset):
@@ -24,13 +26,15 @@ class ArtefactDataset(Dataset):
         self,
         image_paths: List[str],
         mask_paths: List[str],
-        transform: Optional[A.Compose] = None
+        transform: Optional[A.Compose] = None,
+        hierarchical: bool = False
     ):
         """
         Args:
             image_paths: List of image file paths
             mask_paths: List of mask file paths
             transform: Albumentations transform
+            hierarchical: If True, return dict of masks (binary, coarse, fine)
         """
         # Filter excluded images
         filtered = [
@@ -45,15 +49,18 @@ class ArtefactDataset(Dataset):
         self.image_paths = [p[0] for p in filtered]
         self.mask_paths = [p[1] for p in filtered]
         self.transform = transform
+        self.hierarchical = hierarchical
     
     def __len__(self) -> int:
         return len(self.image_paths)
     
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, Union[torch.Tensor, Dict[str, torch.Tensor]]]:
         """
         Returns:
             image: (3, H, W) float tensor
-            mask: (H, W) long tensor with class indices
+            mask: 
+                If hierarchical=False: (H, W) long tensor (fine classes)
+                If hierarchical=True: Dict with 'binary', 'coarse', 'fine' masks
         """
         # Load image and mask
         image = np.array(Image.open(self.image_paths[idx]).convert('RGB'))
@@ -74,7 +81,14 @@ class ArtefactDataset(Dataset):
         # Clip mask values to valid range [0, 15]
         mask = mask.clamp(0, 15)
         
-        return image, mask
+        if self.hierarchical:
+            return image, {
+                'binary': fine_to_binary(mask),
+                'coarse': fine_to_coarse(mask),
+                'fine': mask
+            }
+        else:
+            return image, mask
 
 
 def get_transforms(image_size: int, is_train: bool = True) -> A.Compose:
@@ -121,7 +135,9 @@ def create_dataloaders(
     prefetch_factor: int = 4,
     drop_last: bool = True,
     seed: int = 42,
-    use_augmented: bool = False
+    use_augmented: bool = False,
+    hierarchical: bool = False,
+    manifest_path: str = None
 ) -> Tuple[DataLoader, DataLoader]:
     """
     Create train and validation dataloaders
@@ -137,6 +153,8 @@ def create_dataloaders(
         drop_last: Drop last incomplete batch
         seed: Random seed for split
         use_augmented: Use offline augmented dataset (artefact_augmented)
+        hierarchical: Use hierarchical labels (POC-6)
+        manifest_path: Path to JSON manifest for split (POC-6 DG)
     
     Returns:
         train_loader, val_loader
@@ -151,34 +169,52 @@ def create_dataloaders(
     else:
         print(f"📦 Using original dataset: {data_path}")
     
-    image_dir = data_path / 'images'
-    mask_dir = data_path / 'annotations'
-    
-    # Get all image paths
-    image_paths = sorted(
-        list(image_dir.glob('*.png')) +
-        list(image_dir.glob('*.jpg'))
-    )
-    mask_paths = [mask_dir / img.name for img in image_paths]
-    
-    # Filter existing masks
-    mask_paths = [m for m in mask_paths if m.exists()]
-    image_paths = image_paths[:len(mask_paths)]
-    
-    print(f"Found {len(image_paths)} images")
-    
-    # Train/val split (80/20)
-    np.random.seed(seed)
-    indices = np.random.permutation(len(image_paths))
-    split_idx = int(len(indices) * 0.8)
-    
-    train_indices = indices[:split_idx]
-    val_indices = indices[split_idx:]
-    
-    train_images = [str(image_paths[i]) for i in train_indices]
-    train_masks = [str(mask_paths[i]) for i in train_indices]
-    val_images = [str(image_paths[i]) for i in val_indices]
-    val_masks = [str(mask_paths[i]) for i in val_indices]
+    if manifest_path:
+        print(f"📜 Loading split from manifest: {manifest_path}")
+        import json
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+            
+        # Manifest contains relative paths like "images/foo.png"
+        # We need to construct full paths
+        
+        train_images = [str(data_path / p) for p in manifest['train']]
+        val_images = [str(data_path / p) for p in manifest['test']]
+        
+        # Construct mask paths
+        # Image path: images/foo.png -> Mask path: annotations/foo.png
+        train_masks = [str(data_path / p.replace('images/', 'annotations/')) for p in manifest['train']]
+        val_masks = [str(data_path / p.replace('images/', 'annotations/')) for p in manifest['test']]
+        
+    else:
+        image_dir = data_path / 'images'
+        mask_dir = data_path / 'annotations'
+        
+        # Get all image paths
+        image_paths = sorted(
+            list(image_dir.glob('*.png')) +
+            list(image_dir.glob('*.jpg'))
+        )
+        mask_paths = [mask_dir / img.name for img in image_paths]
+        
+        # Filter existing masks
+        mask_paths = [m for m in mask_paths if m.exists()]
+        image_paths = image_paths[:len(mask_paths)]
+        
+        print(f"Found {len(image_paths)} images")
+        
+        # Train/val split (80/20)
+        np.random.seed(seed)
+        indices = np.random.permutation(len(image_paths))
+        split_idx = int(len(indices) * 0.8)
+        
+        train_indices = indices[:split_idx]
+        val_indices = indices[split_idx:]
+        
+        train_images = [str(image_paths[i]) for i in train_indices]
+        train_masks = [str(mask_paths[i]) for i in train_indices]
+        val_images = [str(image_paths[i]) for i in val_indices]
+        val_masks = [str(mask_paths[i]) for i in val_indices]
     
     print(f"Train: {len(train_images)}, Val: {len(val_images)}")
     
@@ -186,13 +222,15 @@ def create_dataloaders(
     train_dataset = ArtefactDataset(
         train_images,
         train_masks,
-        transform=get_transforms(image_size, is_train=True)
+        transform=get_transforms(image_size, is_train=True),
+        hierarchical=hierarchical
     )
     
     val_dataset = ArtefactDataset(
         val_images,
         val_masks,
-        transform=get_transforms(image_size, is_train=False)
+        transform=get_transforms(image_size, is_train=False),
+        hierarchical=hierarchical
     )
     
     # Create dataloaders

@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=poc59-test
+#SBATCH --job-name=poc6-test
 #SBATCH --partition=gpu-wide
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=2:00:00
-#SBATCH --output=logs/test_%j.out
-#SBATCH --error=logs/test_%j.err
+#SBATCH --output=logs/test_hierarchical_%j.out
+#SBATCH --error=logs/test_hierarchical_%j.err
 
 echo "================================"
-echo "POC-5.9-v2 Test Job (based on POC-5.8 fast pipeline)"
+echo "POC-6 Hierarchical Test Job"
 echo "SLURM Job ID: $SLURM_JOB_ID"
 echo "Node: $SLURMD_NODENAME"
 echo "GPU: $CUDA_VISIBLE_DEVICES"
@@ -20,19 +20,16 @@ echo "================================"
 source ~/.bashrc
 conda activate poc55
 
-# Let SLURM assign GPU (don't hardcode CUDA_VISIBLE_DEVICES)
-# SLURM automatically sets it based on --gres=gpu:1
-
 # GPU info
 nvidia-smi
 
 # Run test
-cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc59-v2
+cd /opt/home/btrigueros/HeritageArt-CNN-ViT-Hybrid/experiments/artefact-poc6-multiclass-dg
 
-CONFIG=${1:-configs/convnext_tiny.yaml}
+CONFIG=${1:-configs/hierarchical_convnext.yaml}
 
 echo ""
-echo "🧪 Testing POC-5.9-v2..."
+echo "🧪 Testing POC-6 Hierarchical..."
 echo "Config: $CONFIG"
 echo ""
 
