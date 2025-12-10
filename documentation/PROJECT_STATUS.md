@@ -354,7 +354,7 @@ POC-5.9:         Production benchmark (37.63% mIoU) ⭐
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/d4v7d/HeritageArt-CNN-ViT-Hybrid.git
+git clone https://github.com/HeritageArt-Research/HeritageArt-CNN-ViT-Hybrid.git
 cd HeritageArt-CNN-ViT-Hybrid
 ```
 
@@ -483,7 +483,7 @@ cat documentation/POC6_PLANNING.md
 
 ## 🔗 Repository Information
 
-- **GitHub**: https://github.com/d4v7d/HeritageArt-CNN-ViT-Hybrid
+- **GitHub**: https://github.com/HeritageArt-Research/HeritageArt-CNN-ViT-Hybrid
 - **Branch**: `main`
 - **Production Tag**: `v1.0-production`
 - **Author**: Brandon Trigueros
